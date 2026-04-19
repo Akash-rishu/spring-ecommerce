@@ -13,38 +13,47 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, unique = true, length = 255)
+    @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false, length = 255)
-    private String password;
+    @Column(nullable = false)
+    private String password; // 🔐 BCrypt hashed password
 
-    @Column(name = "phone_number", length = 20)
+    @Column(name = "phone_number")
     private String phoneNumber;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Role role = Role.USER;
+    private Role role = Role.USER; // default role
 
-    @Column(name = "created_at", nullable = false, updatable = false)
     @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
     private Timestamp createdAt;
 
-    @Column(name = "updated_at")
     @UpdateTimestamp
+    @Column(name = "updated_at")
     private Timestamp updatedAt;
 
-    // Getters and setters...
+    // ✅ Default Constructor
+    public User() {
+    }
+
+    // ✅ Parameterized Constructor
+    public User(String name, String email, String password, String phoneNumber, Role role) {
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.phoneNumber = phoneNumber;
+        this.role = role != null ? role : Role.USER;
+    }
+
+    // ✅ Getters and Setters
 
     public Long getId() {
         return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getName() {
@@ -55,6 +64,10 @@ public class User {
         this.name = name;
     }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public String getEmail() {
         return email;
     }
@@ -63,6 +76,7 @@ public class User {
         this.email = email;
     }
 
+    // 🔐 Never expose in API response
     public String getPassword() {
         return password;
     }
@@ -80,7 +94,7 @@ public class User {
     }
 
     public Role getRole() {
-        return role;
+        return role != null ? role : Role.USER;
     }
 
     public void setRole(Role role) {
@@ -91,15 +105,7 @@ public class User {
         return createdAt;
     }
 
-    public void setCreatedAt(Timestamp createdAt) {
-        this.createdAt = createdAt;
-    }
-
     public Timestamp getUpdatedAt() {
         return updatedAt;
-    }
-
-    public void setUpdatedAt(Timestamp updatedAt) {
-        this.updatedAt = updatedAt;
     }
 }
