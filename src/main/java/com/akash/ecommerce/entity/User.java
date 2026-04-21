@@ -37,11 +37,11 @@ public class User {
     @Column(name = "updated_at")
     private Timestamp updatedAt;
 
-    // ✅ Default Constructor
+    // Default Constructor
     public User() {
     }
 
-    // ✅ Parameterized Constructor
+    // Parameterized Constructor
     public User(String name, String email, String password, String phoneNumber, Role role) {
         this.name = name;
         this.email = email;
@@ -50,7 +50,7 @@ public class User {
         this.role = role != null ? role : Role.USER;
     }
 
-    // ✅ Getters and Setters
+    // Getters and Setters
 
     public Long getId() {
         return id;

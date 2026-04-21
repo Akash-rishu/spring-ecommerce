@@ -31,7 +31,6 @@ public class AuthController {
     @Autowired
     private AuthenticationManager authenticationManager;
 
-    // ✅ Register API (BCrypt applied)
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody User user) {
 

@@ -7,11 +7,10 @@ public class UserDTO {
     private String email;
     private String role; // USER / ADMIN
 
-    // ✅ Default Constructor
+    // Default Constructor
     public UserDTO() {
     }
 
-    // ✅ Parameterized Constructor
     public UserDTO(Long id, String name, String email, String role) {
         this.id = id;
         this.name = name;

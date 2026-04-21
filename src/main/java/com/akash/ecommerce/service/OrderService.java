@@ -1,10 +1,11 @@
 package com.akash.ecommerce.service;
 
+import java.util.List;
+
 import com.akash.ecommerce.dto.OrderRequest;
 import com.akash.ecommerce.dto.OrderResponse;
 import com.akash.ecommerce.dto.OrderStatusUpdateRequest;
 
-import java.util.List;
 
 public interface OrderService {
     List<OrderResponse> getAllOrders();
