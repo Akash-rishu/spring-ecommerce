@@ -1,0 +1,61 @@
+            ┌────────────┐
+            │   USERS    │
+            │────────────│
+            │ id (PK)    │
+            │ name       │
+            │ email      │
+            └─────┬──────┘
+                  │ 1
+                  │
+                  │
+                  ▼ N
+            ┌────────────┐
+            │   ORDERS   │
+            │────────────│
+            │ id (PK)    │
+            │ user_id(FK)│
+            │ status     │
+            └─────┬──────┘
+                  │ 1
+                  │
+                  ▼ N
+            ┌──────────────┐
+            │ ORDER_ITEMS  │
+            │──────────────│
+            │ order_id(FK) │
+            │ product_id(FK)
+            │ quantity     │
+            └─────┬────────┘
+                  │
+                  │ N
+                  ▼
+            ┌────────────┐
+            │  PRODUCTS  │
+            │────────────│
+            │ id (PK)    │
+            │ name       │
+            │ price      │
+            │ category_id│
+            └─────┬──────┘
+                  │ N
+                  ▼ 1
+            ┌────────────┐
+            │ CATEGORIES │
+            │────────────│
+            │ id (PK)    │
+            │ name       │
+            └────────────┘
+
+
+ USERS ────< CART ────< CART_ITEMS >──── PRODUCTS
+
+            ┌────────────┐
+            │ PAYMENTS   │
+            │────────────│
+            │ order_id FK│
+            └─────▲──────┘
+                  │ 1
+                  │
+                ORDERS
+
+ USERS ────< ADDRESSES

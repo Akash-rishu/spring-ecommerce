@@ -1,0 +1,9 @@
+CREATE TABLE users (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(150),
+    email VARCHAR(150) UNIQUE,
+    password VARCHAR(255),
+    phone VARCHAR(15),
+    role ENUM('CUSTOMER','ADMIN'),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

@@ -12,6 +12,9 @@ public class PaymentInitiateResponse {
     public String getOrderId() {
         return orderId;
     }
+    public void setOrderId(Long orderId) {
+        this.orderId = orderId == null ? null : String.valueOf(orderId);
+    }
 
     public void setOrderId(String orderId) {
         this.orderId = orderId;
