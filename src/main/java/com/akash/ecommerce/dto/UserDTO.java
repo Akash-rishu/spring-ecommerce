@@ -23,7 +23,7 @@ public class UserDTO {
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
-                user.getRole().name() // ✅ FIX HERE
+                user.getRole().name()
         );
     }
 

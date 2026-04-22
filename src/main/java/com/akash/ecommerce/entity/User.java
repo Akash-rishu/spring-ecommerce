@@ -1,9 +1,18 @@
 package com.akash.ecommerce.entity;
 
 import java.sql.Timestamp;
-import jakarta.persistence.*;
+
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "users")
@@ -20,7 +29,7 @@ public class User {
     private String email;
 
     @Column(nullable = false)
-    private String password; // 🔐 BCrypt hashed password
+    private String password; // BCrypt hashed password
 
     @Column(name = "phone_number")
     private String phoneNumber;
@@ -76,7 +85,7 @@ public class User {
         this.email = email;
     }
 
-    // 🔐 Never expose in API response
+    // Never expose in API response
     public String getPassword() {
         return password;
     }

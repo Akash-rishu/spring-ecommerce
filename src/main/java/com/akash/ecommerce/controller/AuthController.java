@@ -44,7 +44,7 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Email already exists");
         }
 
-        // 🔐 BCrypt hashing
+        // BCrypt hashing
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         User savedUser = userRepository.save(user);
@@ -57,7 +57,7 @@ public class AuthController {
         return ResponseEntity.ok(userDTO);
     }
 
-    // ✅ Login API (Authentication + JWT)
+    // Login API (Authentication + JWT)
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> loginUser(@RequestBody AuthRequest request) {
         authenticationManager
