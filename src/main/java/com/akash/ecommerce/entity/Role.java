@@ -1,5 +1,6 @@
 package com.akash.ecommerce.entity;
 
-enum Role {
-    USER, ADMIN
+public enum Role {
+    USER,
+    ADMIN
 }
