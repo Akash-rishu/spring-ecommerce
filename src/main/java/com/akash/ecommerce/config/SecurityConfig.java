@@ -48,28 +48,24 @@ public class SecurityConfig {
     }
 
     // Security Filter Chain
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+@Bean
+public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        http
-            .csrf(csrf -> csrf.disable())
+    http
+        .cors(cors -> {})
+        .csrf(csrf -> csrf.disable()) // 🔥 MUST be disabled
 
-            // JWT = Stateless
-            .sessionManagement(session -> session
-                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
+        .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        )
 
-            .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/api/auth/**").permitAll()
-                    .anyRequest().authenticated()
-            )
+        .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/auth/**").permitAll()
+                .anyRequest().authenticated()
+        )
 
-            // REGISTER AUTH PROVIDER
-            .authenticationProvider(authenticationProvider())
+        .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
-            // JWT FILTER
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
-    }
+    return http.build();
+}
 }

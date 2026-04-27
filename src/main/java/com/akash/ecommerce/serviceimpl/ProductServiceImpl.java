@@ -8,7 +8,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.akash.ecommerce.entity.Category;
 import com.akash.ecommerce.entity.Product;
 import com.akash.ecommerce.repository.ProductRepository;
 import com.akash.ecommerce.service.ProductService;
@@ -25,7 +24,7 @@ public class ProductServiceImpl implements ProductService  {
     }
 
     @Override
-    public List<Product> findAllProduct() {
+    public List<Product> findAllProducts() {
         List<Product> products = productRepository.findAll();
         if(products.isEmpty()) {
             return null;
@@ -35,7 +34,7 @@ public class ProductServiceImpl implements ProductService  {
     }
 
     @Override
-    public Product findByProductId(long productId) {
+    public Product findProductById(long productId) {
         Optional<Product> optional = productRepository.findById(productId);
 
         if(optional.isEmpty()) {
@@ -47,7 +46,7 @@ public class ProductServiceImpl implements ProductService  {
     }
 
     @Override
-    public Product updateByProductId(long productId, Product updateProduct) {
+    public Product updateProduct(long productId, Product updateProduct) {
         Optional<Product> optional = productRepository.findById(productId);
 
         if(optional.isEmpty()) {
@@ -60,7 +59,7 @@ public class ProductServiceImpl implements ProductService  {
     }
 
     @Override
-    public Product deleteByProductId(long productId) {
+    public Product deleteProduct(long productId) {
         Optional<Product> optional = productRepository.findById(productId);
 
         if(optional.isEmpty()) {
@@ -73,15 +72,16 @@ public class ProductServiceImpl implements ProductService  {
     }
 
     @Override
-    public List<Product> findByCategoryId(Category categoryId) {
-        List<Product> products = productRepository.findByCategoryId(categoryId);
+    public List<Product> findByCategoryId(Long categoryId) {
 
-        if(products.isEmpty()) {
-            return null;
-        }else {
-            return products;
-        }
+    List<Product> products = productRepository.findByCategory_Id(categoryId);
+
+    if (products.isEmpty()) {
+        throw new RuntimeException("No products found for this category");
     }
+
+    return products;
+}
     public List<Product> findByIsLatestTrue()
     {
         List<Product> products= productRepository.findByIsLatestTrue();
