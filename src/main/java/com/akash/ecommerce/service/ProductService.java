@@ -21,4 +21,7 @@ public interface ProductService {
     List<Product> findByIsLatestTrue();
 
     void toggleLatestStatus(Long productId);
+
+    // ADD THIS (IMPORTANT)
+    List<Product> searchProducts(String name, Long categoryId);
 }

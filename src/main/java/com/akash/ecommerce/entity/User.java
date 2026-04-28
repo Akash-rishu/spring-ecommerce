@@ -1,9 +1,11 @@
 package com.akash.ecommerce.entity;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -28,8 +30,9 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @JsonIgnore 
     @Column(nullable = false)
-    private String password; // BCrypt hashed password
+    private String password;
 
     @Column(name = "phone_number")
     private String phoneNumber;
@@ -40,26 +43,25 @@ public class User {
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
-    private Timestamp createdAt;
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at")
-    private Timestamp updatedAt;
+    private LocalDateTime updatedAt;
 
     // Default Constructor
-    public User() {
-    }
+    public User() {}
 
-    // Parameterized Constructor
+    // Constructor
     public User(String name, String email, String password, String phoneNumber, Role role) {
         this.name = name;
         this.email = email;
         this.password = password;
         this.phoneNumber = phoneNumber;
-        this.role = role != null ? role : Role.USER;
+        this.role = (role != null) ? role : Role.USER;
     }
 
-    // Getters and Setters
+    // Getters & Setters
 
     public Long getId() {
         return id;
@@ -69,12 +71,12 @@ public class User {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getEmail() {
@@ -85,8 +87,7 @@ public class User {
         this.email = email;
     }
 
-    // Never expose in API response
-    public String getPassword() {
+    public String getPassword() { 
         return password;
     }
 
@@ -103,18 +104,18 @@ public class User {
     }
 
     public Role getRole() {
-        return role != null ? role : Role.USER;
+        return role;
     }
 
     public void setRole(Role role) {
         this.role = role;
     }
 
-    public Timestamp getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public Timestamp getUpdatedAt() {
+    public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 }

@@ -13,11 +13,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.akash.ecommerce.entity.Product;
 import com.akash.ecommerce.service.ProductService;
 import com.akash.ecommerce.utils.ResponseStructure;
+
 
 @RestController
 @RequestMapping("/api/products")
@@ -27,7 +29,7 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
-    // T025: Add Product
+    // Add Product
     @PostMapping
     public ResponseEntity<ResponseStructure<Product>> addProduct(@RequestBody Product product) {
 
@@ -37,11 +39,11 @@ public class ProductController {
         response.setStatusCode(HttpStatus.CREATED.value());
         response.setMessage("Product created successfully");
         response.setData(savedProduct);
-
+        System.out.println("POST API HIT");
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    // T026: Get All Products
+    //  Get All Products
     @GetMapping
     public ResponseEntity<ResponseStructure<List<Product>>> getAllProducts() {
 
@@ -140,4 +142,18 @@ public ResponseEntity<ResponseStructure<String>> deleteProduct(@PathVariable Lon
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
-}
+
+    @GetMapping("/search")
+public ResponseEntity<ResponseStructure<List<Product>>> searchProducts(
+        @RequestParam(required = false) String name,
+        @RequestParam(required = false) Long categoryId) {
+
+    List<Product> products = productService.searchProducts(name, categoryId);
+
+    ResponseStructure<List<Product>> response = new ResponseStructure<>();
+    response.setStatusCode(HttpStatus.OK.value());
+    response.setMessage("Search results fetched");
+    response.setData(products);
+
+    return new ResponseEntity<>(response, HttpStatus.OK);
+}}

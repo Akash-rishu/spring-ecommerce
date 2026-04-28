@@ -32,25 +32,34 @@ public class JwtFilter extends OncePerRequestFilter {
                                     FilterChain chain)
             throws ServletException, IOException {
 
-        String authHeader = request.getHeader("Authorization");
+        final String authHeader = request.getHeader("Authorization");
 
         String token = null;
         String email = null;
 
+        // Extract token
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
-            email = jwtUtil.extractEmail(token);
+
+            try {
+                email = jwtUtil.extractEmail(token);
+            } catch (Exception e) {
+                System.out.println("❌ Invalid or expired JWT token");
+            }
         }
 
+        // Authenticate user
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
             var userDetails = userDetailsService.loadUserByUsername(email);
 
             if (jwtUtil.validateToken(token, email)) {
 
+                System.out.println(" Valid JWT for: " + email);
+
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
-                                userDetails.getUsername(),
+                                userDetails, 
                                 null,
                                 userDetails.getAuthorities()
                         );
@@ -63,9 +72,7 @@ public class JwtFilter extends OncePerRequestFilter {
             }
         }
 
+        // Continue request
         chain.doFilter(request, response);
-
-        System.out.println("Email: " + email);
-        System.out.println("Auth before: " + SecurityContextHolder.getContext().getAuthentication());
     }
 }

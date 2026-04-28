@@ -2,6 +2,7 @@ package com.akash.ecommerce.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -53,14 +54,35 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
 
     http
         .cors(cors -> {})
-        .csrf(csrf -> csrf.disable()) // 🔥 MUST be disabled
+        .csrf(csrf -> csrf.disable())
 
         .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         )
 
         .authorizeHttpRequests(auth -> auth
+
+                // PUBLIC
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                // PUBLIC READ APIs
+                .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
+
+                // ADMIN (Products)
+                .requestMatchers(HttpMethod.POST, "/api/products/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/products/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/products/**").hasRole("ADMIN")
+
+                // ADMIN (Categories)
+                .requestMatchers(HttpMethod.POST, "/api/categories/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/categories/**").hasRole("ADMIN") 
+
+                // USER
+                .requestMatchers("/api/cart/**").hasRole("USER")
+                .requestMatchers("/api/orders/**").hasRole("USER")
+
                 .anyRequest().authenticated()
         )
 

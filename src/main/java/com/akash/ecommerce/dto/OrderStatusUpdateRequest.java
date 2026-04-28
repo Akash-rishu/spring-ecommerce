@@ -1,10 +1,14 @@
 package com.akash.ecommerce.dto;
 
-import lombok.*;
+import com.akash.ecommerce.entity.OrderStatus;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderStatusUpdateRequest {
-    private String status; // Expects one of: PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED
+     private OrderStatus status;
 }

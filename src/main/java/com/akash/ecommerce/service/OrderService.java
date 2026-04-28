@@ -6,13 +6,20 @@ import com.akash.ecommerce.dto.OrderRequest;
 import com.akash.ecommerce.dto.OrderResponse;
 import com.akash.ecommerce.dto.OrderStatusUpdateRequest;
 
-
 public interface OrderService {
+
+    //  ADMIN ONLY
     List<OrderResponse> getAllOrders();
 
-    OrderResponse getOrderById(Long id);
+    //  USER - get only their orders
+    List<OrderResponse> getOrdersByUser(Long userId);
 
-    OrderResponse createOrder(OrderRequest orderRequest);
+    // USER - get specific order (with ownership check)
+    OrderResponse getOrderByIdForUser(Long orderId, Long userId);
 
-    OrderResponse updateOrderStatus(Long id, OrderStatusUpdateRequest statusUpdateRequest);
+    // USER - create order (secure)
+    OrderResponse createOrder(OrderRequest orderRequest, Long userId);
+
+    // ADMIN ONLY - update status
+    OrderResponse updateOrderStatus(Long orderId, OrderStatusUpdateRequest statusUpdateRequest);
 }

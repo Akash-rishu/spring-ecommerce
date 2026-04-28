@@ -1,13 +1,25 @@
 package com.akash.ecommerce.controller;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.akash.ecommerce.dto.OrderRequest;
 import com.akash.ecommerce.dto.OrderResponse;
 import com.akash.ecommerce.dto.OrderStatusUpdateRequest;
+import com.akash.ecommerce.entity.User;
+import com.akash.ecommerce.repository.UserRepository;
 import com.akash.ecommerce.service.OrderService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -16,28 +28,53 @@ public class OrderController {
     @Autowired
     private OrderService orderService;
 
-    // GET /api/orders - Fetch all orders (Admin)
+    @Autowired
+    private UserRepository userRepository;
+
+    // ADMIN ONLY - Get all orders
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public List<OrderResponse> getAllOrders() {
         return orderService.getAllOrders();
     }
 
-    // GET /api/orders/{id} - Fetch specific order
+    // USER - Get own orders
+    @GetMapping("/my")
+    public List<OrderResponse> getMyOrders() {
+        User user = getLoggedInUser();
+        return orderService.getOrdersByUser(user.getId());
+    }
+
+    // USER - Get own order by id
     @GetMapping("/{id}")
     public OrderResponse getOrderById(@PathVariable Long id) {
-        return orderService.getOrderById(id);
+        User user = getLoggedInUser();
+        return orderService.getOrderByIdForUser(id, user.getId());
     }
 
-    // POST /api/orders - Place new order
+    // USER - Place order (NO userId from request)
     @PostMapping
     public OrderResponse createOrder(@RequestBody OrderRequest orderRequest) {
-        return orderService.createOrder(orderRequest);
+        User user = getLoggedInUser();
+        return orderService.createOrder(orderRequest, user.getId());
     }
 
-    // PUT /api/orders/{id} - Update order status (Admin)
+    // ADMIN ONLY - Update order status
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public OrderResponse updateOrderStatus(@PathVariable Long id,
             @RequestBody OrderStatusUpdateRequest statusUpdateRequest) {
+
         return orderService.updateOrderStatus(id, statusUpdateRequest);
+    }
+
+    // COMMON METHOD (IMPORTANT)
+    private User getLoggedInUser() {
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 }
