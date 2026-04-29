@@ -1,7 +1,5 @@
 package com.akash.ecommerce.controller;
 
-import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -60,17 +58,22 @@ public class AuthController {
     // Login API (Authentication + JWT)
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> loginUser(@RequestBody AuthRequest request) {
-        authenticationManager
-                .authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
 
-        Optional<User> user = userRepository.findByEmail(request.getEmail());
+    authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(
+                    request.getEmail(),
+                    request.getPassword()
+            )
+    );
 
-        if (user.isPresent()) {
-            String token = jwtUtil.generateToken(user.get().getEmail());
-            return ResponseEntity.ok(new AuthResponse(token));
-        }
+    User user = userRepository.findByEmail(request.getEmail())
+            .orElseThrow(() -> new RuntimeException("User not found"));
 
-        return ResponseEntity.status(404)
-                .body(new AuthResponse("User not found"));
-    }
+    String token = jwtUtil.generateToken(
+            user.getEmail(),
+            user.getRole().name()   // ADMIN / USER
+    );
+
+    return ResponseEntity.ok(new AuthResponse(token));
+}
 }
