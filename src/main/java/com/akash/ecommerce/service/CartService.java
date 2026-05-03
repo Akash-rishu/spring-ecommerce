@@ -19,4 +19,5 @@ public interface CartService {
 
     // OPTIONAL (recommended) - clear full cart
     void clearCart(Long userId);
+    Cart updateQuantity(Long cartId, int quantity);
 }

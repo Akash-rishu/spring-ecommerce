@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.akash.ecommerce.dto.AuthRequest;
 import com.akash.ecommerce.dto.AuthResponse;
 import com.akash.ecommerce.dto.UserDTO;
+import com.akash.ecommerce.entity.Role;
 import com.akash.ecommerce.entity.User;
 import com.akash.ecommerce.repository.UserRepository;
 import com.akash.ecommerce.utils.JwtUtil;
@@ -42,6 +43,8 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Email already exists");
         }
 
+        // temporary fix
+        user.setRole(Role.USER);
         // BCrypt hashing
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 

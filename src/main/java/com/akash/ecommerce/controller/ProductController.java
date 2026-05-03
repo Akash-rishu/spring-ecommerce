@@ -1,9 +1,13 @@
 package com.akash.ecommerce.controller;
 
+import java.io.File;
+import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -11,15 +15,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.akash.ecommerce.entity.Category;
 import com.akash.ecommerce.entity.Product;
+import com.akash.ecommerce.repository.CategoryRepository;
+import com.akash.ecommerce.repository.ProductRepository;
 import com.akash.ecommerce.service.ProductService;
-import com.akash.ecommerce.utils.ResponseStructure;
-
 
 @RestController
 @RequestMapping("/api/products")
@@ -27,133 +32,136 @@ import com.akash.ecommerce.utils.ResponseStructure;
 public class ProductController {
 
     @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Autowired
     private ProductService productService;
 
-    // Add Product
+    private final String UPLOAD_DIR = "C:/uploads/";
+
+    // ================= ADD PRODUCT =================
     @PostMapping
-    public ResponseEntity<ResponseStructure<Product>> addProduct(@RequestBody Product product) {
+    public ResponseEntity<?> addProduct(
+            @RequestParam String productName,
+            @RequestParam String productDescription,
+            @RequestParam BigDecimal productPrice,
+            @RequestParam int stock,
+            @RequestParam Long categoryId,
+            @RequestParam(required = false) MultipartFile image
+    ) {
+        try {
 
-        Product savedProduct = productService.addProduct(product);
+            // create folder if not exists
+            File dir = new File(UPLOAD_DIR);
+            if (!dir.exists()) dir.mkdirs();
 
-        ResponseStructure<Product> response = new ResponseStructure<>();
-        response.setStatusCode(HttpStatus.CREATED.value());
-        response.setMessage("Product created successfully");
-        response.setData(savedProduct);
-        System.out.println("POST API HIT");
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+            String fileName = null;
+
+            // save image
+            if (image != null && !image.isEmpty()) {
+                fileName = System.currentTimeMillis() + "_" + image.getOriginalFilename();
+                Path path = Paths.get(UPLOAD_DIR + fileName);
+                Files.write(path, image.getBytes());
+            }
+
+            Category category = categoryRepository.findById(categoryId)
+                    .orElseThrow(() -> new RuntimeException("Category not found"));
+
+            Product product = new Product();
+            product.setProductName(productName);
+            product.setProductDescription(productDescription);
+            product.setProductPrice(productPrice);
+            product.setStock(stock);
+            product.setImage(fileName);
+            product.setCategory(category);
+
+            return ResponseEntity.ok(productRepository.save(product));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body("Upload failed");
+        }
     }
 
-    //  Get All Products
+    // ================= GET ALL =================
     @GetMapping
-    public ResponseEntity<ResponseStructure<List<Product>>> getAllProducts() {
-
-        List<Product> products = productService.findAllProducts();
-
-        ResponseStructure<List<Product>> response = new ResponseStructure<>();
-        response.setStatusCode(HttpStatus.OK.value());
-        response.setMessage("Products fetched successfully");
-        response.setData(products);
-
-        return new ResponseEntity<>(response, HttpStatus.OK);
+    public ResponseEntity<List<Product>> getAllProducts() {
+        return ResponseEntity.ok(productService.findAllProducts());
     }
 
-    // Get Product by ID
+    // ================= GET BY ID =================
     @GetMapping("/{id}")
-    public ResponseEntity<ResponseStructure<Product>> getProductById(@PathVariable Long id) {
-
-        Product product = productService.findProductById(id);
-
-        ResponseStructure<Product> response = new ResponseStructure<>();
-        response.setStatusCode(HttpStatus.OK.value());
-        response.setMessage("Product found");
-        response.setData(product);
-
-        return new ResponseEntity<>(response, HttpStatus.OK);
+    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
+        return ResponseEntity.ok(productService.findProductById(id));
     }
 
-    // Update Product
+    // ================= UPDATE PRODUCT =================
     @PutMapping("/{id}")
-    public ResponseEntity<ResponseStructure<Product>> updateProduct(
+    public ResponseEntity<?> updateProduct(
             @PathVariable Long id,
-            @RequestBody Product product) {
+            @RequestParam String productName,
+            @RequestParam String productDescription,
+            @RequestParam BigDecimal productPrice,
+            @RequestParam int stock,
+            @RequestParam Long categoryId,
+            @RequestParam(required = false) MultipartFile image
+    ) {
+        try {
+            Product product = productRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        Product updatedProduct = productService.updateProduct(id, product);
+            product.setProductName(productName);
+            product.setProductDescription(productDescription);
+            product.setProductPrice(productPrice);
+            product.setStock(stock);
 
-        ResponseStructure<Product> response = new ResponseStructure<>();
-        response.setStatusCode(HttpStatus.OK.value());
-        response.setMessage("Product updated successfully");
-        response.setData(updatedProduct);
+            Category category = categoryRepository.findById(categoryId)
+                    .orElseThrow(() -> new RuntimeException("Category not found"));
 
-        return new ResponseEntity<>(response, HttpStatus.OK);
+            product.setCategory(category);
+
+            // update image
+            if (image != null && !image.isEmpty()) {
+
+                // delete old image
+                if (product.getImage() != null) {
+                    File old = new File(UPLOAD_DIR + product.getImage());
+                    if (old.exists()) old.delete();
+                }
+
+                String fileName = System.currentTimeMillis() + "_" + image.getOriginalFilename();
+                Path path = Paths.get(UPLOAD_DIR + fileName);
+                Files.write(path, image.getBytes());
+
+                product.setImage(fileName);
+            }
+
+            return ResponseEntity.ok(productRepository.save(product));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body("Update failed");
+        }
     }
 
-    // Delete Product
-   @DeleteMapping("/{id}")
-public ResponseEntity<ResponseStructure<String>> deleteProduct(@PathVariable Long id) {
+    // ================= DELETE =================
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteProduct(@PathVariable Long id) {
 
-    productService.deleteProduct(id);
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
 
-    ResponseStructure<String> response = new ResponseStructure<>();
-    response.setStatusCode(HttpStatus.OK.value());
-    response.setMessage("Product deleted successfully");
-    response.setData("Deleted");
+        // delete image file
+        if (product.getImage() != null) {
+            File file = new File(UPLOAD_DIR + product.getImage());
+            if (file.exists()) file.delete();
+        }
 
-    return new ResponseEntity<>(response, HttpStatus.OK);
+        productRepository.delete(product);
+
+        return ResponseEntity.ok("Deleted successfully");
+    }
 }
-
-    // Get Products by Category
-    @GetMapping("/category/{categoryId}")
-    public ResponseEntity<ResponseStructure<List<Product>>> getProductsByCategory(@PathVariable Long categoryId) {
-
-        List<Product> products = productService.findByCategoryId(categoryId);
-
-        ResponseStructure<List<Product>> response = new ResponseStructure<>();
-        response.setStatusCode(HttpStatus.OK.value());
-        response.setMessage("Products fetched by category");
-        response.setData(products);
-
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
-    // Get Latest Products
-    @GetMapping("/latest")
-    public ResponseEntity<ResponseStructure<List<Product>>> getLatestProducts() {
-
-        List<Product> products = productService.findByIsLatestTrue();
-
-        ResponseStructure<List<Product>> response = new ResponseStructure<>();
-        response.setStatusCode(HttpStatus.OK.value());
-        response.setMessage("Latest products fetched");
-        response.setData(products);
-
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
-    // Toggle Latest Flag
-    @PutMapping("/{id}/latest")
-    public ResponseEntity<ResponseStructure<String>> toggleLatest(@PathVariable Long id) {
-
-        productService.toggleLatestStatus(id);
-
-        ResponseStructure<String> response = new ResponseStructure<>();
-        response.setStatusCode(HttpStatus.OK.value());
-        response.setMessage("Latest status updated");
-        response.setData("Success");
-
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
-    @GetMapping("/search")
-public ResponseEntity<ResponseStructure<List<Product>>> searchProducts(
-        @RequestParam(required = false) String name,
-        @RequestParam(required = false) Long categoryId) {
-
-    List<Product> products = productService.searchProducts(name, categoryId);
-
-    ResponseStructure<List<Product>> response = new ResponseStructure<>();
-    response.setStatusCode(HttpStatus.OK.value());
-    response.setMessage("Search results fetched");
-    response.setData(products);
-
-    return new ResponseEntity<>(response, HttpStatus.OK);
-}}

@@ -69,6 +69,7 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
                 // PUBLIC READ APIs
                 .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
+                .requestMatchers("/api/cart/**").authenticated()
 
                 // ADMIN (Products)
                 .requestMatchers(HttpMethod.POST, "/api/products/**").hasRole("ADMIN")

@@ -26,21 +26,29 @@ public class CartServiceImpl implements CartService {
     private UserRepository userRepository;
 
     @Override
-    public Cart addToCart(Long userId, Long productId, int quantity) {
+public Cart addToCart(Long userId, Long productId, int quantity) {
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    Cart existing = cartRepository
+        .findByUserIdAndProduct_Id(userId, productId)
+        .orElse(null);
 
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
-
-        Cart cart = new Cart();
-        cart.setUser(user);
-        cart.setProduct(product);
-        cart.setQuantity(quantity);
-
-        return cartRepository.save(cart);
+    if (existing != null) {
+        existing.setQuantity(existing.getQuantity() + quantity);
+        return cartRepository.save(existing);
     }
+
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new RuntimeException("User not found"));
+    Product product = productRepository.findById(productId)
+        .orElseThrow(() -> new RuntimeException("Product not found"));
+
+    Cart cart = new Cart();
+    cart.setUser(user);
+    cart.setProduct(product);
+    cart.setQuantity(quantity);
+
+    return cartRepository.save(cart);
+}
 
     @Override
     public List<Cart> getUserCart(Long userId) {
@@ -65,4 +73,14 @@ public class CartServiceImpl implements CartService {
         List<Cart> carts = cartRepository.findByUserId(userId);
         cartRepository.deleteAll(carts);
     }
+
+    public Cart updateQuantity(Long cartId, int quantity) {
+
+    Cart cart = cartRepository.findById(cartId)
+        .orElseThrow(() -> new RuntimeException("Cart not found"));
+
+    cart.setQuantity(quantity);
+
+    return cartRepository.save(cart);
+}
 }

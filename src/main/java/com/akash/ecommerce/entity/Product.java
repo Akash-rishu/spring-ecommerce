@@ -34,6 +34,8 @@ public class Product {
     @Column(nullable = false)
     private Integer stock;
 
+    private String image;
+
     @ManyToOne
     @JoinColumn(name = "category_categoryId")
     private Category category;
@@ -45,6 +47,14 @@ public class Product {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
 
     public Long getId() {
         return id;

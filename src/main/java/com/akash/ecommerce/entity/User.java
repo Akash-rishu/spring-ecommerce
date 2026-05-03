@@ -34,12 +34,16 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    //Temp Change
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
     @Column(name = "phone_number")
     private String phoneNumber;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Role role = Role.USER; // default role
+    // @Enumerated(EnumType.STRING)
+    // @Column(nullable = false)
+    // private Role role = Role.USER; // default role
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
