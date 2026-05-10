@@ -38,47 +38,59 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // USER
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    // TOTAL PRICE
     @Column(name = "total_price", nullable = false)
     private BigDecimal totalPrice;
 
-<<<<<<< HEAD
-=======
+    // SHIPPING ADDRESS
     @Column(name = "address")
     private String address;
 
+    // PAYMENT METHOD
     @Column(name = "payment_method")
     private String paymentMethod;
 
->>>>>>> b654978 (My code)
+    // ORDER STATUS
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
     private OrderStatus status = OrderStatus.PENDING;
 
+    // CREATED TIME
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    // UPDATED TIME
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "order",
-               cascade = CascadeType.ALL,
-               orphanRemoval = true,
-               fetch = FetchType.LAZY)
+    // ORDER ITEMS
+    @OneToMany(
+            mappedBy = "order",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
+    )
     private List<OrderItem> orderItems;
 
+    // AUTO CREATE TIMESTAMP
     @PrePersist
     public void prePersist() {
+
         createdAt = LocalDateTime.now();
+
         updatedAt = createdAt;
     }
 
+    // AUTO UPDATE TIMESTAMP
     @PreUpdate
     public void preUpdate() {
+
         updatedAt = LocalDateTime.now();
     }
 }

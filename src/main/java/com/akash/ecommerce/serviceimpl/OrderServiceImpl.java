@@ -8,20 +8,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-<<<<<<< HEAD
-=======
 import com.akash.ecommerce.dto.CheckoutRequest;
->>>>>>> b654978 (My code)
 import com.akash.ecommerce.dto.OrderRequest;
 import com.akash.ecommerce.dto.OrderResponse;
 import com.akash.ecommerce.dto.OrderStatusUpdateRequest;
 import com.akash.ecommerce.entity.Cart;
 import com.akash.ecommerce.entity.Order;
 import com.akash.ecommerce.entity.OrderItem;
-<<<<<<< HEAD
-=======
 import com.akash.ecommerce.entity.OrderStatus;
->>>>>>> b654978 (My code)
 import com.akash.ecommerce.entity.Product;
 import com.akash.ecommerce.entity.User;
 import com.akash.ecommerce.repository.CartRepository;
@@ -30,8 +24,10 @@ import com.akash.ecommerce.repository.ProductRepository;
 import com.akash.ecommerce.repository.UserRepository;
 import com.akash.ecommerce.service.OrderService;
 
+import lombok.Builder;
 
 @Service
+@Builder
 public class OrderServiceImpl implements OrderService {
 
     @Autowired private OrderRepository orderRepository;
@@ -50,24 +46,20 @@ public class OrderServiceImpl implements OrderService {
         return res;
     }
 
-<<<<<<< HEAD
-=======
     @Override
     public OrderResponse checkout(
         Long userId,
         CheckoutRequest request
     ) {
 
-    OrderRequest orderRequest =
-            new OrderRequest();
+        OrderRequest orderRequest = new OrderRequest();
+        
+        return createOrder(
+                orderRequest,
+                userId
+        );
+    }
 
-    return createOrder(
-            orderRequest,
-            userId
-    );
-}
-
->>>>>>> b654978 (My code)
     // USER - list own orders
     @Override
     public List<OrderResponse> getOrdersByUser(Long userId) {
@@ -93,7 +85,6 @@ public class OrderServiceImpl implements OrderService {
 
     // USER - create order from cart (secure)
     @Override
-<<<<<<< HEAD
     @Transactional
     public OrderResponse createOrder(OrderRequest orderRequest, Long userId) {
 
@@ -109,6 +100,7 @@ public class OrderServiceImpl implements OrderService {
         // 2) create order
         Order order = new Order();
         order.setUser(user);
+        order.setStatus(OrderStatus.PLACED);
 
         List<OrderItem> orderItems = new ArrayList<>();
         BigDecimal total = BigDecimal.ZERO;
@@ -157,110 +149,6 @@ public class OrderServiceImpl implements OrderService {
         cartRepository.deleteAll(cartItems);
 
         return mapToResponse(saved);
-=======
-@Transactional
-public OrderResponse createOrder(
-        OrderRequest orderRequest,
-        Long userId
-) {
-
-    User user = userRepository.findById(userId)
-            .orElseThrow(() ->
-                    new RuntimeException("User not found"));
-
-    // Fetch Cart Items
-    List<Cart> cartItems =
-            cartRepository.findByUserId(userId);
-
-    if (cartItems.isEmpty()) {
-
-        throw new RuntimeException(
-                "Cart is empty"
-        );
-    }
-
-    // Create Order
-    Order order = new Order();
-
-    order.setUser(user);
-
-    order.setStatus(OrderStatus.PLACED);
-
-    List<OrderItem> orderItems =
-            new ArrayList<>();
-
-    BigDecimal total =
-            BigDecimal.ZERO;
-
-    // Convert Cart -> Order Items
-    for (Cart cart : cartItems) {
-
-        Product product =
-                cart.getProduct();
-
-        int qty =
-                cart.getQuantity();
-
-        // Validate Quantity
-        if (qty <= 0) {
-
-            throw new RuntimeException(
-                    "Invalid quantity"
-            );
-        }
-
-        // Validate Stock
-        if (product.getStock() < qty) {
-
-            throw new RuntimeException(
-                    "Insufficient stock for: "
-                            + product.getProductName()
-            );
-        }
-
-        // Reduce Stock
-        product.setStock(
-                product.getStock() - qty
-        );
-
-        productRepository.save(product);
-
-        // Create Order Item
-        OrderItem item =
-                OrderItem.builder()
-                        .order(order)
-                        .product(product)
-                        .quantity(qty)
-                        .price(
-                                product.getProductPrice()
-                        )
-                        .build();
-
-        orderItems.add(item);
-
-        // Calculate Total
-        total = total.add(
-                product.getProductPrice()
-                        .multiply(
-                                BigDecimal.valueOf(qty)
-                        )
-        );
-    }
-
-    // Set Order Data
-    order.setOrderItems(orderItems);
-
-    order.setTotalPrice(total);
-
-    // Save Order
-    Order savedOrder =
-            orderRepository.save(order);
-
-    // Clear Cart
-    cartRepository.deleteAll(cartItems);
-
-    return mapToResponse(savedOrder);
->>>>>>> b654978 (My code)
     }
 
     // ADMIN - update status
@@ -284,30 +172,26 @@ public OrderResponse createOrder(
         List<OrderResponse.OrderItemResponse> items = new ArrayList<>();
 
         if (order.getOrderItems() != null) {
-    for (OrderItem oi : order.getOrderItems()) {
-        items.add(new OrderResponse.OrderItemResponse(
-                oi.getProduct().getId(),
-                oi.getProduct().getProductName(),
-                oi.getQuantity(),
-                oi.getPrice()
-        ));
-    }
-}
+            for (OrderItem oi : order.getOrderItems()) {
+                items.add(new OrderResponse.OrderItemResponse(
+                        oi.getProduct().getId(),
+                        oi.getProduct().getProductName(),
+                        oi.getQuantity(),
+                        oi.getPrice()
+                ));
+            }
+        }
 
         return new OrderResponse(
-        order.getId(),
-        order.getUser().getId(),
-        order.getTotalPrice(),
-        order.getStatus(),
-        order.getCreatedAt(),
-<<<<<<< HEAD
-        order.getUpdatedAt(),   
-=======
-        order.getUpdatedAt(),
-        order.getAddress(),
-        order.getPaymentMethod(),
->>>>>>> b654978 (My code)
-        items
-);
+                order.getId(),
+                order.getUser().getId(),
+                order.getTotalPrice(),
+                order.getStatus(),
+                order.getCreatedAt(),
+                order.getUpdatedAt(),
+                order.getAddress(),
+                order.getPaymentMethod(),
+                items
+        );
     }
 }

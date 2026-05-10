@@ -40,103 +40,6 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
-<<<<<<< HEAD
-    private final String UPLOAD_DIR = "C:/uploads/";
-
-    // ================= ADD PRODUCT =================
-    @PostMapping
-    public ResponseEntity<?> addProduct(
-            @RequestParam String productName,
-            @RequestParam String productDescription,
-            @RequestParam BigDecimal productPrice,
-            @RequestParam int stock,
-            @RequestParam Long categoryId,
-            @RequestParam(required = false) MultipartFile image
-    ) {
-        try {
-
-            // create folder if not exists
-            File dir = new File(UPLOAD_DIR);
-            if (!dir.exists()) dir.mkdirs();
-
-            String fileName = null;
-
-            // save image
-            if (image != null && !image.isEmpty()) {
-                fileName = System.currentTimeMillis() + "_" + image.getOriginalFilename();
-                Path path = Paths.get(UPLOAD_DIR + fileName);
-                Files.write(path, image.getBytes());
-            }
-
-            Category category = categoryRepository.findById(categoryId)
-                    .orElseThrow(() -> new RuntimeException("Category not found"));
-
-            Product product = new Product();
-            product.setProductName(productName);
-            product.setProductDescription(productDescription);
-            product.setProductPrice(productPrice);
-            product.setStock(stock);
-            product.setImage(fileName);
-            product.setCategory(category);
-
-            return ResponseEntity.ok(productRepository.save(product));
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().body("Upload failed");
-        }
-    }
-
-    // ================= GET ALL =================
-    @GetMapping
-    public ResponseEntity<List<Product>> getAllProducts() {
-        return ResponseEntity.ok(productService.findAllProducts());
-    }
-
-    // ================= GET BY ID =================
-    @GetMapping("/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
-        return ResponseEntity.ok(productService.findProductById(id));
-    }
-
-    // ================= UPDATE PRODUCT =================
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateProduct(
-            @PathVariable Long id,
-            @RequestParam String productName,
-            @RequestParam String productDescription,
-            @RequestParam BigDecimal productPrice,
-            @RequestParam int stock,
-            @RequestParam Long categoryId,
-            @RequestParam(required = false) MultipartFile image
-    ) {
-        try {
-            Product product = productRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Product not found"));
-
-            product.setProductName(productName);
-            product.setProductDescription(productDescription);
-            product.setProductPrice(productPrice);
-            product.setStock(stock);
-
-            Category category = categoryRepository.findById(categoryId)
-                    .orElseThrow(() -> new RuntimeException("Category not found"));
-
-            product.setCategory(category);
-
-            // update image
-            if (image != null && !image.isEmpty()) {
-
-                // delete old image
-                if (product.getImage() != null) {
-                    File old = new File(UPLOAD_DIR + product.getImage());
-                    if (old.exists()) old.delete();
-                }
-
-                String fileName = System.currentTimeMillis() + "_" + image.getOriginalFilename();
-                Path path = Paths.get(UPLOAD_DIR + fileName);
-                Files.write(path, image.getBytes());
-=======
     private final String UPLOAD_DIR =
             "D:/project/ecommerce/uploads/";
 
@@ -152,20 +55,25 @@ public class ProductController {
 
             @RequestParam BigDecimal productPrice,
 
-            @RequestParam int stock,
+            @RequestParam Integer stock,
 
             @RequestParam Long categoryId,
 
-            @RequestParam(required = false)
+            @RequestParam(
+                    value = "image",
+                    required = false
+            )
             MultipartFile image
 
     ) {
 
         try {
 
-            File dir = new File(
-                    UPLOAD_DIR
-            );
+            // CREATE DIRECTORY
+            File dir =
+                    new File(
+                            UPLOAD_DIR
+                    );
 
             if (!dir.exists()) {
                 dir.mkdirs();
@@ -184,9 +92,11 @@ public class ProductController {
                         + "_"
                         + image.getOriginalFilename();
 
-                Path path = Paths.get(
-                        UPLOAD_DIR + fileName
-                );
+                Path path =
+                        Paths.get(
+                                UPLOAD_DIR
+                                + fileName
+                        );
 
                 Files.write(
                         path,
@@ -194,6 +104,7 @@ public class ProductController {
                 );
             }
 
+            // FIND CATEGORY
             Category category =
                     categoryRepository
                     .findById(categoryId)
@@ -204,6 +115,7 @@ public class ProductController {
                             )
                     );
 
+            // CREATE PRODUCT
             Product product =
                     new Product();
 
@@ -223,16 +135,25 @@ public class ProductController {
                     productPrice
             );
 
-            product.setStock(stock);
+            product.setStock(
+                    stock
+            );
 
-            product.setImage(fileName);
+            product.setImage(
+                    fileName
+            );
 
-            product.setCategory(category);
+            product.setCategory(
+                    category
+            );
 
-            return ResponseEntity.ok(
+            Product savedProduct =
                     productRepository.save(
                             product
-                    )
+                    );
+
+            return ResponseEntity.ok(
+                    savedProduct
             );
 
         } catch (Exception e) {
@@ -241,7 +162,10 @@ public class ProductController {
 
             return ResponseEntity
                     .internalServerError()
-                    .body("Upload failed");
+                    .body(
+                        "Upload failed: "
+                        + e.getMessage()
+                    );
         }
     }
 
@@ -283,11 +207,14 @@ public class ProductController {
 
             @RequestParam BigDecimal productPrice,
 
-            @RequestParam int stock,
+            @RequestParam Integer stock,
 
             @RequestParam Long categoryId,
 
-            @RequestParam(required = false)
+            @RequestParam(
+                    value = "image",
+                    required = false
+            )
             MultipartFile image
 
     ) {
@@ -320,8 +247,11 @@ public class ProductController {
                     productPrice
             );
 
-            product.setStock(stock);
+            product.setStock(
+                    stock
+            );
 
+            // CATEGORY
             Category category =
                     categoryRepository
                     .findById(categoryId)
@@ -332,7 +262,9 @@ public class ProductController {
                             )
                     );
 
-            product.setCategory(category);
+            product.setCategory(
+                    category
+            );
 
             // UPDATE IMAGE
             if (
@@ -345,60 +277,49 @@ public class ProductController {
                     product.getImage() != null
                 ) {
 
-                    File old =
+                    File oldImage =
                             new File(
-                                UPLOAD_DIR
-                                + product.getImage()
+                                    UPLOAD_DIR
+                                    + product.getImage()
                             );
 
-                    if (old.exists()) {
-                        old.delete();
+                    if (
+                        oldImage.exists()
+                    ) {
+
+                        oldImage.delete();
                     }
                 }
 
+                // SAVE NEW IMAGE
                 String fileName =
                         System.currentTimeMillis()
                         + "_"
                         + image.getOriginalFilename();
 
-                Path path = Paths.get(
-                        UPLOAD_DIR + fileName
-                );
+                Path path =
+                        Paths.get(
+                                UPLOAD_DIR
+                                + fileName
+                        );
 
                 Files.write(
                         path,
                         image.getBytes()
                 );
->>>>>>> b654978 (My code)
 
-                product.setImage(fileName);
+                product.setImage(
+                        fileName
+                );
             }
 
-<<<<<<< HEAD
-            return ResponseEntity.ok(productRepository.save(product));
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().body("Update failed");
-        }
-    }
-
-    // ================= DELETE =================
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteProduct(@PathVariable Long id) {
-
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
-
-        // delete image file
-        if (product.getImage() != null) {
-            File file = new File(UPLOAD_DIR + product.getImage());
-            if (file.exists()) file.delete();
-=======
-            return ResponseEntity.ok(
+            Product updatedProduct =
                     productRepository.save(
                             product
-                    )
+                    );
+
+            return ResponseEntity.ok(
+                    updatedProduct
             );
 
         } catch (Exception e) {
@@ -407,7 +328,10 @@ public class ProductController {
 
             return ResponseEntity
                     .internalServerError()
-                    .body("Update failed");
+                    .body(
+                        "Update failed: "
+                        + e.getMessage()
+                    );
         }
     }
 
@@ -417,41 +341,55 @@ public class ProductController {
             @PathVariable Long id
     ) {
 
-        Product product =
-                productRepository
-                .findById(id)
+        try {
 
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Product not found"
-                        )
-                );
+            Product product =
+                    productRepository
+                    .findById(id)
 
-        // DELETE IMAGE
-        if (
-            product.getImage() != null
-        ) {
-
-            File file =
-                    new File(
-                        UPLOAD_DIR
-                        + product.getImage()
+                    .orElseThrow(() ->
+                            new RuntimeException(
+                                    "Product not found"
+                            )
                     );
 
-            if (file.exists()) {
-                file.delete();
+            // DELETE IMAGE
+            if (
+                product.getImage() != null
+            ) {
+
+                File imageFile =
+                        new File(
+                                UPLOAD_DIR
+                                + product.getImage()
+                        );
+
+                if (
+                    imageFile.exists()
+                ) {
+
+                    imageFile.delete();
+                }
             }
->>>>>>> b654978 (My code)
+
+            productRepository.delete(
+                    product
+            );
+
+            return ResponseEntity.ok(
+                    "Product deleted successfully"
+            );
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            return ResponseEntity
+                    .internalServerError()
+                    .body(
+                        "Delete failed: "
+                        + e.getMessage()
+                    );
         }
-
-        productRepository.delete(product);
-
-<<<<<<< HEAD
-        return ResponseEntity.ok("Deleted successfully");
-=======
-        return ResponseEntity.ok(
-                "Deleted successfully"
-        );
->>>>>>> b654978 (My code)
     }
 }

@@ -19,80 +19,6 @@ import com.akash.ecommerce.service.CustomUserDetailsService;
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
-<<<<<<< HEAD
-    private final JwtFilter jwtFilter;
-
-    public SecurityConfig(CustomUserDetailsService userDetailsService,
-                          JwtFilter jwtFilter) {
-        this.userDetailsService = userDetailsService;
-        this.jwtFilter = jwtFilter;
-    }
-
-    // Password Encoder
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    // Authentication Manager
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
-    }
-
-    // IMPORTANT: Authentication Provider (Fixes many 403 issues)
-    @Bean
-    public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoder());
-        return authProvider;
-    }
-
-    // Security Filter Chain
-@Bean
-public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
-    http
-        .cors(cors -> {})
-        .csrf(csrf -> csrf.disable())
-
-        .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-        )
-
-        .authorizeHttpRequests(auth -> auth
-
-                // PUBLIC
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
-                // PUBLIC READ APIs
-                .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
-                .requestMatchers("/api/cart/**").authenticated()
-
-                // ADMIN (Products)
-                .requestMatchers(HttpMethod.POST, "/api/products/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/products/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/products/**").hasRole("ADMIN")
-
-                // ADMIN (Categories)
-                .requestMatchers(HttpMethod.POST, "/api/categories/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/categories/**").hasRole("ADMIN") 
-
-                // USER
-                .requestMatchers("/api/cart/**").hasRole("USER")
-                .requestMatchers("/api/orders/**").hasRole("USER")
-
-                .anyRequest().authenticated()
-        )
-
-        .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-
-    return http.build();
-}
-=======
 
     private final JwtFilter jwtFilter;
 
@@ -275,5 +201,4 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
 
         return http.build();
     }
->>>>>>> b654978 (My code)
 }
