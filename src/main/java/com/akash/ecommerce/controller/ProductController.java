@@ -40,6 +40,7 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
+<<<<<<< HEAD
     private final String UPLOAD_DIR = "C:/uploads/";
 
     // ================= ADD PRODUCT =================
@@ -135,10 +136,245 @@ public class ProductController {
                 String fileName = System.currentTimeMillis() + "_" + image.getOriginalFilename();
                 Path path = Paths.get(UPLOAD_DIR + fileName);
                 Files.write(path, image.getBytes());
+=======
+    private final String UPLOAD_DIR =
+            "D:/project/ecommerce/uploads/";
+
+    // ADD PRODUCT
+    @PostMapping
+    public ResponseEntity<?> addProduct(
+
+            @RequestParam String productName,
+
+            @RequestParam String description,
+
+            @RequestParam String specifications,
+
+            @RequestParam BigDecimal productPrice,
+
+            @RequestParam int stock,
+
+            @RequestParam Long categoryId,
+
+            @RequestParam(required = false)
+            MultipartFile image
+
+    ) {
+
+        try {
+
+            File dir = new File(
+                    UPLOAD_DIR
+            );
+
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+
+            String fileName = null;
+
+            // SAVE IMAGE
+            if (
+                image != null &&
+                !image.isEmpty()
+            ) {
+
+                fileName =
+                        System.currentTimeMillis()
+                        + "_"
+                        + image.getOriginalFilename();
+
+                Path path = Paths.get(
+                        UPLOAD_DIR + fileName
+                );
+
+                Files.write(
+                        path,
+                        image.getBytes()
+                );
+            }
+
+            Category category =
+                    categoryRepository
+                    .findById(categoryId)
+
+                    .orElseThrow(() ->
+                            new RuntimeException(
+                                    "Category not found"
+                            )
+                    );
+
+            Product product =
+                    new Product();
+
+            product.setProductName(
+                    productName
+            );
+
+            product.setDescription(
+                    description
+            );
+
+            product.setSpecifications(
+                    specifications
+            );
+
+            product.setProductPrice(
+                    productPrice
+            );
+
+            product.setStock(stock);
+
+            product.setImage(fileName);
+
+            product.setCategory(category);
+
+            return ResponseEntity.ok(
+                    productRepository.save(
+                            product
+                    )
+            );
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            return ResponseEntity
+                    .internalServerError()
+                    .body("Upload failed");
+        }
+    }
+
+    // GET ALL PRODUCTS
+    @GetMapping
+    public ResponseEntity<List<Product>>
+    getAllProducts() {
+
+        return ResponseEntity.ok(
+                productService
+                .findAllProducts()
+        );
+    }
+
+    // GET PRODUCT BY ID
+    @GetMapping("/{id}")
+    public ResponseEntity<Product>
+    getProductById(
+            @PathVariable Long id
+    ) {
+
+        return ResponseEntity.ok(
+                productService
+                .findProductById(id)
+        );
+    }
+
+    // UPDATE PRODUCT
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateProduct(
+
+            @PathVariable Long id,
+
+            @RequestParam String productName,
+
+            @RequestParam String description,
+
+            @RequestParam String specifications,
+
+            @RequestParam BigDecimal productPrice,
+
+            @RequestParam int stock,
+
+            @RequestParam Long categoryId,
+
+            @RequestParam(required = false)
+            MultipartFile image
+
+    ) {
+
+        try {
+
+            Product product =
+                    productRepository
+                    .findById(id)
+
+                    .orElseThrow(() ->
+                            new RuntimeException(
+                                    "Product not found"
+                            )
+                    );
+
+            product.setProductName(
+                    productName
+            );
+
+            product.setDescription(
+                    description
+            );
+
+            product.setSpecifications(
+                    specifications
+            );
+
+            product.setProductPrice(
+                    productPrice
+            );
+
+            product.setStock(stock);
+
+            Category category =
+                    categoryRepository
+                    .findById(categoryId)
+
+                    .orElseThrow(() ->
+                            new RuntimeException(
+                                    "Category not found"
+                            )
+                    );
+
+            product.setCategory(category);
+
+            // UPDATE IMAGE
+            if (
+                image != null &&
+                !image.isEmpty()
+            ) {
+
+                // DELETE OLD IMAGE
+                if (
+                    product.getImage() != null
+                ) {
+
+                    File old =
+                            new File(
+                                UPLOAD_DIR
+                                + product.getImage()
+                            );
+
+                    if (old.exists()) {
+                        old.delete();
+                    }
+                }
+
+                String fileName =
+                        System.currentTimeMillis()
+                        + "_"
+                        + image.getOriginalFilename();
+
+                Path path = Paths.get(
+                        UPLOAD_DIR + fileName
+                );
+
+                Files.write(
+                        path,
+                        image.getBytes()
+                );
+>>>>>>> b654978 (My code)
 
                 product.setImage(fileName);
             }
 
+<<<<<<< HEAD
             return ResponseEntity.ok(productRepository.save(product));
 
         } catch (Exception e) {
@@ -158,10 +394,64 @@ public class ProductController {
         if (product.getImage() != null) {
             File file = new File(UPLOAD_DIR + product.getImage());
             if (file.exists()) file.delete();
+=======
+            return ResponseEntity.ok(
+                    productRepository.save(
+                            product
+                    )
+            );
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            return ResponseEntity
+                    .internalServerError()
+                    .body("Update failed");
+        }
+    }
+
+    // DELETE PRODUCT
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteProduct(
+            @PathVariable Long id
+    ) {
+
+        Product product =
+                productRepository
+                .findById(id)
+
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Product not found"
+                        )
+                );
+
+        // DELETE IMAGE
+        if (
+            product.getImage() != null
+        ) {
+
+            File file =
+                    new File(
+                        UPLOAD_DIR
+                        + product.getImage()
+                    );
+
+            if (file.exists()) {
+                file.delete();
+            }
+>>>>>>> b654978 (My code)
         }
 
         productRepository.delete(product);
 
+<<<<<<< HEAD
         return ResponseEntity.ok("Deleted successfully");
+=======
+        return ResponseEntity.ok(
+                "Deleted successfully"
+        );
+>>>>>>> b654978 (My code)
     }
 }

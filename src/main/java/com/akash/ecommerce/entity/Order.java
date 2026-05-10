@@ -45,6 +45,15 @@ public class Order {
     @Column(name = "total_price", nullable = false)
     private BigDecimal totalPrice;
 
+<<<<<<< HEAD
+=======
+    @Column(name = "address")
+    private String address;
+
+    @Column(name = "payment_method")
+    private String paymentMethod;
+
+>>>>>>> b654978 (My code)
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default

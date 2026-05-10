@@ -2,6 +2,10 @@ package com.akash.ecommerce.service;
 
 import java.util.List;
 
+<<<<<<< HEAD
+=======
+import com.akash.ecommerce.dto.CheckoutRequest;
+>>>>>>> b654978 (My code)
 import com.akash.ecommerce.dto.OrderRequest;
 import com.akash.ecommerce.dto.OrderResponse;
 import com.akash.ecommerce.dto.OrderStatusUpdateRequest;
@@ -22,4 +26,10 @@ public interface OrderService {
 
     // ADMIN ONLY - update status
     OrderResponse updateOrderStatus(Long orderId, OrderStatusUpdateRequest statusUpdateRequest);
+<<<<<<< HEAD
+=======
+
+    // USER - checkout (convert cart to order)
+    OrderResponse checkout(Long userId, CheckoutRequest request);
+>>>>>>> b654978 (My code)
 }

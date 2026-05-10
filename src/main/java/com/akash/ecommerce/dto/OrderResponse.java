@@ -22,9 +22,20 @@ public class OrderResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+<<<<<<< HEAD
     // rename to match service
     private List<OrderItemResponse> items;
 
+=======
+    private String address;
+    private String paymentMethod;
+
+    // rename to match service
+    private List<OrderItemResponse> items;
+
+    
+
+>>>>>>> b654978 (My code)
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

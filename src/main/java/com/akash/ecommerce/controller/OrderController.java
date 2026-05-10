@@ -14,6 +14,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+<<<<<<< HEAD
+=======
+import com.akash.ecommerce.dto.CheckoutRequest;
+>>>>>>> b654978 (My code)
 import com.akash.ecommerce.dto.OrderRequest;
 import com.akash.ecommerce.dto.OrderResponse;
 import com.akash.ecommerce.dto.OrderStatusUpdateRequest;
@@ -77,4 +81,18 @@ public class OrderController {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
+<<<<<<< HEAD
+=======
+
+    @PostMapping("/checkout")
+    public OrderResponse checkout(@RequestBody CheckoutRequest request) {
+
+    User user = getLoggedInUser();
+
+    return orderService.checkout(
+            user.getId(),
+            request
+    );
+}
+>>>>>>> b654978 (My code)
 }

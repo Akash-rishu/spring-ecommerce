@@ -19,6 +19,7 @@ import com.akash.ecommerce.service.CustomUserDetailsService;
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
+<<<<<<< HEAD
     private final JwtFilter jwtFilter;
 
     public SecurityConfig(CustomUserDetailsService userDetailsService,
@@ -91,4 +92,188 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
 
     return http.build();
 }
+=======
+
+    private final JwtFilter jwtFilter;
+
+    public SecurityConfig(
+            CustomUserDetailsService userDetailsService,
+            JwtFilter jwtFilter
+    ) {
+
+        this.userDetailsService =
+                userDetailsService;
+
+        this.jwtFilter =
+                jwtFilter;
+    }
+
+    // PASSWORD ENCODER
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+
+        return new BCryptPasswordEncoder();
+    }
+
+    // AUTHENTICATION MANAGER
+    @Bean
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration config
+    ) throws Exception {
+
+        return config.getAuthenticationManager();
+    }
+
+    // AUTH PROVIDER
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+
+        DaoAuthenticationProvider authProvider =
+                new DaoAuthenticationProvider();
+
+        authProvider.setUserDetailsService(
+                userDetailsService
+        );
+
+        authProvider.setPasswordEncoder(
+                passwordEncoder()
+        );
+
+        return authProvider;
+    }
+
+    // SECURITY FILTER CHAIN
+    @Bean
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http
+    ) throws Exception {
+
+        http
+
+            .cors(cors -> {})
+
+            .csrf(csrf -> csrf.disable())
+
+            .sessionManagement(session ->
+                    session.sessionCreationPolicy(
+                            SessionCreationPolicy.STATELESS
+                    )
+            )
+
+            .authorizeHttpRequests(auth -> auth
+
+                    // PUBLIC AUTH
+                    .requestMatchers(
+                            "/api/auth/**"
+                    )
+                    .permitAll()
+
+                    // IMAGE ACCESS
+                    .requestMatchers(
+                            "/images/**"
+                    )
+                    .permitAll()
+
+                    // OPTIONS
+                    .requestMatchers(
+                            HttpMethod.OPTIONS,
+                            "/**"
+                    )
+                    .permitAll()
+
+                    // PUBLIC PRODUCTS
+                    .requestMatchers(
+                            HttpMethod.GET,
+                            "/api/products/**"
+                    )
+                    .permitAll()
+
+                    .requestMatchers(
+                            HttpMethod.GET,
+                            "/api/categories/**"
+                    )
+                    .permitAll()
+
+                    // CHECKOUT
+                    .requestMatchers(
+                            "/api/orders/checkout"
+                    )
+                    .permitAll()
+
+                    // CART
+                    .requestMatchers(
+                            "/api/cart/**"
+                    )
+                    .hasRole("USER")
+
+                    // PRODUCT ADMIN
+                    .requestMatchers(
+                            HttpMethod.POST,
+                            "/api/products/**"
+                    )
+                    .hasRole("ADMIN")
+
+                    .requestMatchers(
+                            HttpMethod.PUT,
+                            "/api/products/**"
+                    )
+                    .hasRole("ADMIN")
+
+                    .requestMatchers(
+                            HttpMethod.DELETE,
+                            "/api/products/**"
+                    )
+                    .hasRole("ADMIN")
+
+                    // CATEGORY ADMIN
+                    .requestMatchers(
+                            HttpMethod.POST,
+                            "/api/categories/**"
+                    )
+                    .hasRole("ADMIN")
+
+                    .requestMatchers(
+                            HttpMethod.DELETE,
+                            "/api/categories/**"
+                    )
+                    .hasRole("ADMIN")
+
+                    // ORDERS
+                    .requestMatchers(
+                            HttpMethod.POST,
+                            "/api/orders/**"
+                    )
+                    .hasAnyRole(
+                            "USER",
+                            "ADMIN"
+                    )
+
+                    .requestMatchers(
+                            HttpMethod.GET,
+                            "/api/orders/**"
+                    )
+                    .hasAnyRole(
+                            "USER",
+                            "ADMIN"
+                    )
+
+                    .requestMatchers(
+                            HttpMethod.PUT,
+                            "/api/orders/**"
+                    )
+                    .hasRole("ADMIN")
+
+                    // EVERYTHING ELSE
+                    .anyRequest()
+                    .authenticated()
+            )
+
+            .addFilterBefore(
+                    jwtFilter,
+                    UsernamePasswordAuthenticationFilter.class
+            );
+
+        return http.build();
+    }
+>>>>>>> b654978 (My code)
 }
