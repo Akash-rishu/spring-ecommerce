@@ -2,6 +2,7 @@ package com.akash.ecommerce.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
@@ -27,70 +28,136 @@ import lombok.Setter;
 
 @Entity
 @Table(name = "orders")
+
 @Getter
 @Setter
+
 @NoArgsConstructor
 @AllArgsConstructor
+
 @Builder
 public class Order {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(
+            strategy =
+            GenerationType.IDENTITY
+    )
     private Long id;
 
+    // =========================
     // USER
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    // =========================
+    @ManyToOne(
+            fetch = FetchType.LAZY
+    )
+    @JoinColumn(
+            name = "user_id",
+            nullable = false
+    )
     private User user;
 
+    // =========================
     // TOTAL PRICE
-    @Column(name = "total_price", nullable = false)
+    // =========================
+    @Column(
+            name = "total_price",
+            nullable = false,
+            precision = 10,
+            scale = 2
+    )
     private BigDecimal totalPrice;
 
+    // =========================
     // SHIPPING ADDRESS
-    @Column(name = "address")
+    // =========================
+    @Column(
+            name = "address",
+            length = 1000
+    )
     private String address;
 
+    // =========================
     // PAYMENT METHOD
-    @Column(name = "payment_method")
+    // =========================
+    @Column(
+            name = "payment_method",
+            length = 100
+    )
     private String paymentMethod;
 
+    // =========================
     // ORDER STATUS
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    // =========================
+    @Enumerated(
+            EnumType.STRING
+    )
+    @Column(
+            nullable = false,
+            length = 50
+    )
     @Builder.Default
-    private OrderStatus status = OrderStatus.PENDING;
+    private OrderStatus status =
+            OrderStatus.PENDING;
 
-    // CREATED TIME
-    @Column(name = "created_at", updatable = false)
+    // =========================
+    // CREATED AT
+    // =========================
+    @Column(
+            name = "created_at",
+            nullable = false,
+            updatable = false
+    )
     private LocalDateTime createdAt;
 
-    // UPDATED TIME
-    @Column(name = "updated_at")
+    // =========================
+    // UPDATED AT
+    // =========================
+    @Column(
+            name = "updated_at"
+    )
     private LocalDateTime updatedAt;
 
+    // =========================
     // ORDER ITEMS
+    // =========================
     @OneToMany(
             mappedBy = "order",
             cascade = CascadeType.ALL,
             orphanRemoval = true,
             fetch = FetchType.LAZY
     )
-    private List<OrderItem> orderItems;
+    @Builder.Default
+    private List<OrderItem> orderItems =
+            new ArrayList<>();
 
+    // =========================
     // AUTO CREATE TIMESTAMP
+    // =========================
     @PrePersist
     public void prePersist() {
 
-        createdAt = LocalDateTime.now();
+        createdAt =
+                LocalDateTime.now();
 
-        updatedAt = createdAt;
+        updatedAt =
+                LocalDateTime.now();
+
+        // DEFAULT STATUS
+        if (status == null) {
+
+            status =
+                    OrderStatus.PENDING;
+        }
     }
 
+    // =========================
     // AUTO UPDATE TIMESTAMP
+    // =========================
     @PreUpdate
     public void preUpdate() {
 
-        updatedAt = LocalDateTime.now();
+        updatedAt =
+                LocalDateTime.now();
     }
 }

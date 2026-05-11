@@ -16,25 +16,35 @@ import lombok.NoArgsConstructor;
 public class OrderResponse {
 
     private Long id;
+
     private Long userId;
+
     private BigDecimal totalPrice;
+
     private OrderStatus status;
+
     private LocalDateTime createdAt;
+
     private LocalDateTime updatedAt;
 
     private String address;
+
     private String paymentMethod;
 
-    // rename to match service
-    private List<OrderItemResponse> items;
+    private List<OrderItemResponse>
+            orderItems;
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     public static class OrderItemResponse {
 
         private Long productId;
-        private String productName; // add (service uses it)
+
+        private String productName;
+
         private Integer quantity;
+
         private BigDecimal price;
     }
 }

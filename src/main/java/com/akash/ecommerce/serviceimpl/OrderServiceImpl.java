@@ -24,174 +24,405 @@ import com.akash.ecommerce.repository.ProductRepository;
 import com.akash.ecommerce.repository.UserRepository;
 import com.akash.ecommerce.service.OrderService;
 
-import lombok.Builder;
-
 @Service
-@Builder
 public class OrderServiceImpl implements OrderService {
 
-    @Autowired private OrderRepository orderRepository;
-    @Autowired private CartRepository cartRepository;
-    @Autowired private ProductRepository productRepository;
-    @Autowired private UserRepository userRepository;
+    @Autowired
+    private OrderRepository orderRepository;
 
-    // ADMIN ONLY (enforced in controller with @PreAuthorize)
+    @Autowired
+    private CartRepository cartRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    // ===========================
+    // ADMIN - GET ALL ORDERS
+    // ===========================
     @Override
     public List<OrderResponse> getAllOrders() {
-        List<Order> orders = orderRepository.findAll();
-        List<OrderResponse> res = new ArrayList<>();
-        for (Order o : orders) {
-            res.add(mapToResponse(o));
-        }
-        return res;
-    }
 
-    @Override
-    public OrderResponse checkout(
-        Long userId,
-        CheckoutRequest request
-    ) {
+        List<Order> orders =
+                orderRepository.findAll();
 
-        OrderRequest orderRequest = new OrderRequest();
-        
-        return createOrder(
-                orderRequest,
-                userId
-        );
-    }
+        List<OrderResponse> responses =
+                new ArrayList<>();
 
-    // USER - list own orders
-    @Override
-    public List<OrderResponse> getOrdersByUser(Long userId) {
-        List<Order> orders = orderRepository.findByUserId(userId);
-        List<OrderResponse> res = new ArrayList<>();
-        for (Order o : orders) {
-            res.add(mapToResponse(o));
-        }
-        return res;
-    }
+        for (Order order : orders) {
 
-    // USER - get one order with ownership check
-    @Override
-    public OrderResponse getOrderByIdForUser(Long orderId, Long userId) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
-
-        if (!order.getUser().getId().equals(userId)) {
-            throw new RuntimeException("Unauthorized access");
-        }
-        return mapToResponse(order);
-    }
-
-    // USER - create order from cart (secure)
-    @Override
-    @Transactional
-    public OrderResponse createOrder(OrderRequest orderRequest, Long userId) {
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        // 1) fetch cart
-        List<Cart> cartItems = cartRepository.findByUserId(userId);
-        if (cartItems.isEmpty()) {
-            throw new RuntimeException("Cart is empty");
-        }
-
-        // 2) create order
-        Order order = new Order();
-        order.setUser(user);
-        order.setStatus(OrderStatus.PLACED);
-
-        List<OrderItem> orderItems = new ArrayList<>();
-        BigDecimal total = BigDecimal.ZERO;
-
-        // 3) build order items + validate stock
-        for (Cart cart : cartItems) {
-
-            Product product = cart.getProduct();
-
-            int qty = cart.getQuantity();
-            if (qty <= 0) {
-                throw new RuntimeException("Invalid quantity");
-            }
-
-            // stock check
-            if (product.getStock() < qty) {
-                throw new RuntimeException(
-                        "Insufficient stock for product: " + product.getProductName());
-            }
-
-            // deduct stock
-            product.setStock(product.getStock() - qty);
-            productRepository.save(product);
-
-            OrderItem item = OrderItem.builder()
-                    .order(order)
-                    .product(product)
-                    .quantity(qty)
-                    .price(product.getProductPrice()) // price at purchase time
-                    .build();
-
-            orderItems.add(item);
-
-            total = total.add(
-                    product.getProductPrice().multiply(BigDecimal.valueOf(qty))
+            responses.add(
+                    mapToResponse(order)
             );
         }
 
-        order.setOrderItems(orderItems);
-        order.setTotalPrice(total);
-
-        // 4) save order (cascades items)
-        Order saved = orderRepository.save(order);
-
-        // 5) clear cart
-        cartRepository.deleteAll(cartItems);
-
-        return mapToResponse(saved);
+        return responses;
     }
 
-    // ADMIN - update status
+    // ===========================
+    // CHECKOUT
+    // ===========================
+    @Transactional
     @Override
-    public OrderResponse updateOrderStatus(Long orderId,
-                                           OrderStatusUpdateRequest req) {
+    public OrderResponse checkout(
+            Long userId,
+            CheckoutRequest request
+    ) {
 
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+        // FIND USER
+        User user =
+                userRepository.findById(userId)
 
-        order.setStatus(req.getStatus());
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "User not found"
+                        )
+                );
 
-        Order updated = orderRepository.save(order);
-        return mapToResponse(updated);
-    }
+        // GET CART ITEMS
+        List<Cart> cartItems =
+                cartRepository.findByUserId(
+                        userId
+                );
 
-    // ------------------ MAPPER ------------------
+        if (cartItems.isEmpty()) {
 
-    private OrderResponse mapToResponse(Order order) {
-
-        List<OrderResponse.OrderItemResponse> items = new ArrayList<>();
-
-        if (order.getOrderItems() != null) {
-            for (OrderItem oi : order.getOrderItems()) {
-                items.add(new OrderResponse.OrderItemResponse(
-                        oi.getProduct().getId(),
-                        oi.getProduct().getProductName(),
-                        oi.getQuantity(),
-                        oi.getPrice()
-                ));
-            }
+            throw new RuntimeException(
+                    "Cart is empty"
+            );
         }
 
-        return new OrderResponse(
-                order.getId(),
-                order.getUser().getId(),
-                order.getTotalPrice(),
-                order.getStatus(),
-                order.getCreatedAt(),
-                order.getUpdatedAt(),
-                order.getAddress(),
-                order.getPaymentMethod(),
-                items
+        // CREATE ORDER
+        Order order =
+                new Order();
+
+        order.setUser(user);
+
+        order.setStatus(
+                OrderStatus.PLACED
+        );
+
+        // SAVE ADDRESS
+        order.setAddress(
+                request.getAddress()
+        );
+
+        // SAVE PAYMENT METHOD
+        order.setPaymentMethod(
+                request.getPaymentMethod()
+        );
+
+        List<OrderItem> orderItems =
+                new ArrayList<>();
+
+        BigDecimal total =
+                BigDecimal.ZERO;
+
+        // LOOP CART ITEMS
+        for (Cart cart : cartItems) {
+
+            Product product =
+                    cart.getProduct();
+
+            Integer quantity =
+                    cart.getQuantity();
+
+            // STOCK CHECK
+            if (
+                product.getStock()
+                < quantity
+            ) {
+
+                throw new RuntimeException(
+                        "Insufficient stock for "
+                        + product.getProductName()
+                );
+            }
+
+            // REDUCE STOCK
+            product.setStock(
+                    product.getStock()
+                    - quantity
+            );
+
+            productRepository.save(
+                    product
+            );
+
+            // CREATE ORDER ITEM
+            OrderItem orderItem =
+                    OrderItem.builder()
+
+                    .order(order)
+
+                    .product(product)
+
+                    .quantity(quantity)
+
+                    .price(
+                            product.getProductPrice()
+                    )
+
+                    .build();
+
+            orderItems.add(
+                    orderItem
+            );
+
+            // CALCULATE TOTAL
+            total =
+                    total.add(
+                            product
+                            .getProductPrice()
+                            .multiply(
+                                    BigDecimal.valueOf(
+                                            quantity
+                                    )
+                            )
+                    );
+        }
+
+        // SET ORDER ITEMS
+        order.setOrderItems(
+                orderItems
+        );
+
+        // SET TOTAL
+        order.setTotalPrice(
+                total
+        );
+
+        // SAVE ORDER
+        Order savedOrder =
+                orderRepository.save(
+                        order
+                );
+
+        // CLEAR CART
+        cartRepository.deleteAll(
+                cartItems
+        );
+
+        // RETURN RESPONSE
+        return mapToResponse(
+                savedOrder
         );
     }
+
+    // ===========================
+    // USER - GET OWN ORDERS
+    // ===========================
+    @Override
+    public List<OrderResponse> getOrdersByUser(
+            Long userId
+    ) {
+
+        List<Order> orders =
+                orderRepository.findByUserId(
+                        userId
+                );
+
+        List<OrderResponse> responses =
+                new ArrayList<>();
+
+        for (Order order : orders) {
+
+            responses.add(
+                    mapToResponse(order)
+            );
+        }
+
+        return responses;
+    }
+
+    // ===========================
+    // USER - GET ORDER BY ID
+    // ===========================
+    @Override
+    public OrderResponse getOrderByIdForUser(
+            Long orderId,
+            Long userId
+    ) {
+
+        Order order =
+                orderRepository.findById(
+                        orderId
+                )
+
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Order not found"
+                        )
+                );
+
+        // SECURITY CHECK
+        if (
+            !order.getUser()
+            .getId()
+            .equals(userId)
+        ) {
+
+            throw new RuntimeException(
+                    "Unauthorized access"
+            );
+        }
+
+        return mapToResponse(order);
+    }
+
+    // ===========================
+    // CREATE ORDER
+    // ===========================
+    @Override
+    @Transactional
+    public OrderResponse createOrder(
+            OrderRequest orderRequest,
+            Long userId
+    ) {
+
+        CheckoutRequest request =
+                new CheckoutRequest();
+
+        request.setAddress(
+                orderRequest.getAddress()
+        );
+
+        request.setPaymentMethod(
+                orderRequest.getPaymentMethod()
+        );
+
+        return checkout(
+                userId,
+                request
+        );
+    }
+
+    // ===========================
+    // ADMIN - UPDATE STATUS
+    // ===========================
+    @Override
+    public OrderResponse updateOrderStatus(
+            Long orderId,
+            OrderStatusUpdateRequest req
+    ) {
+
+        Order order =
+                orderRepository.findById(
+                        orderId
+                )
+
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Order not found"
+                        )
+                );
+
+        order.setStatus(
+                req.getStatus()
+        );
+
+        Order updated =
+                orderRepository.save(
+                        order
+                );
+
+        return mapToResponse(
+                updated
+        );
+    }
+
+    // ===========================
+    // MAP TO RESPONSE
+    // ===========================
+    private OrderResponse mapToResponse(
+        Order order
+) {
+
+    List<OrderResponse.OrderItemResponse>
+            items = new ArrayList<>();
+
+    // SAFE NULL CHECK
+    if (
+        order.getOrderItems()
+        != null
+    ) {
+
+        for (
+            OrderItem oi :
+            order.getOrderItems()
+        ) {
+
+            OrderResponse
+            .OrderItemResponse item =
+
+                    new OrderResponse
+                    .OrderItemResponse();
+
+            item.setProductId(
+                    oi.getProduct()
+                    .getId()
+            );
+
+            item.setProductName(
+                    oi.getProduct()
+                    .getProductName()
+            );
+
+            item.setQuantity(
+                    oi.getQuantity()
+            );
+
+            item.setPrice(
+                    oi.getPrice()
+            );
+
+            items.add(item);
+        }
+    }
+
+    // BUILD RESPONSE
+    OrderResponse response =
+            new OrderResponse();
+
+    response.setId(
+            order.getId()
+    );
+
+    response.setUserId(
+            order.getUser()
+            .getId()
+    );
+
+    response.setTotalPrice(
+            order.getTotalPrice()
+    );
+
+    response.setStatus(
+            order.getStatus()
+    );
+
+    response.setCreatedAt(
+            order.getCreatedAt()
+    );
+
+    response.setUpdatedAt(
+            order.getUpdatedAt()
+    );
+
+    response.setAddress(
+            order.getAddress()
+    );
+
+    response.setPaymentMethod(
+            order.getPaymentMethod()
+    );
+
+    response.setOrderItems(
+            items
+    );
+
+    return response;
+}
 }
