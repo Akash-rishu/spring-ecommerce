@@ -6,7 +6,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.akash.ecommerce.entity.Order;
 
-public interface OrderRepository extends JpaRepository<Order, Long> {
+public interface OrderRepository
+        extends JpaRepository<Order, Long> {
 
-    List<Order> findByUserId(Long userId);
+    // USER ORDERS
+    List<Order>
+    findByUserIdOrderByCreatedAtDesc(
+            Long userId
+    );
 }

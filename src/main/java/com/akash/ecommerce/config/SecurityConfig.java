@@ -120,6 +120,9 @@ public class SecurityConfig {
                     )
                     .permitAll()
 
+                    .requestMatchers("/api/address/**")
+                    .hasRole("USER")
+
                     // CHECKOUT
                     .requestMatchers(
                             "/api/orders/checkout"

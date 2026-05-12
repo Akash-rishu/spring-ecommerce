@@ -25,7 +25,8 @@ import com.akash.ecommerce.repository.UserRepository;
 import com.akash.ecommerce.service.OrderService;
 
 @Service
-public class OrderServiceImpl implements OrderService {
+public class OrderServiceImpl
+        implements OrderService {
 
     @Autowired
     private OrderRepository orderRepository;
@@ -39,9 +40,9 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private UserRepository userRepository;
 
-    // ===========================
+    // =====================================
     // ADMIN - GET ALL ORDERS
-    // ===========================
+    // =====================================
     @Override
     public List<OrderResponse> getAllOrders() {
 
@@ -61,11 +62,11 @@ public class OrderServiceImpl implements OrderService {
         return responses;
     }
 
-    // ===========================
+    // =====================================
     // CHECKOUT
-    // ===========================
-    @Transactional
+    // =====================================
     @Override
+    @Transactional
     public OrderResponse checkout(
             Long userId,
             CheckoutRequest request
@@ -73,7 +74,8 @@ public class OrderServiceImpl implements OrderService {
 
         // FIND USER
         User user =
-                userRepository.findById(userId)
+                userRepository
+                .findById(userId)
 
                 .orElseThrow(() ->
                         new RuntimeException(
@@ -81,11 +83,10 @@ public class OrderServiceImpl implements OrderService {
                         )
                 );
 
-        // GET CART ITEMS
+        // GET CART
         List<Cart> cartItems =
-                cartRepository.findByUserId(
-                        userId
-                );
+                cartRepository
+                .findByUserId(userId);
 
         if (cartItems.isEmpty()) {
 
@@ -104,12 +105,10 @@ public class OrderServiceImpl implements OrderService {
                 OrderStatus.PLACED
         );
 
-        // SAVE ADDRESS
         order.setAddress(
                 request.getAddress()
         );
 
-        // SAVE PAYMENT METHOD
         order.setPaymentMethod(
                 request.getPaymentMethod()
         );
@@ -136,13 +135,16 @@ public class OrderServiceImpl implements OrderService {
             ) {
 
                 throw new RuntimeException(
+
                         "Insufficient stock for "
+
                         + product.getProductName()
                 );
             }
 
             // REDUCE STOCK
             product.setStock(
+
                     product.getStock()
                     - quantity
             );
@@ -153,6 +155,7 @@ public class OrderServiceImpl implements OrderService {
 
             // CREATE ORDER ITEM
             OrderItem orderItem =
+
                     OrderItem.builder()
 
                     .order(order)
@@ -172,24 +175,24 @@ public class OrderServiceImpl implements OrderService {
             );
 
             // CALCULATE TOTAL
-            total =
-                    total.add(
-                            product
-                            .getProductPrice()
-                            .multiply(
-                                    BigDecimal.valueOf(
-                                            quantity
-                                    )
+            total = total.add(
+
+                    product
+                    .getProductPrice()
+
+                    .multiply(
+                            BigDecimal.valueOf(
+                                    quantity
                             )
-                    );
+                    )
+            );
         }
 
-        // SET ORDER ITEMS
+        // SET DATA
         order.setOrderItems(
                 orderItems
         );
 
-        // SET TOTAL
         order.setTotalPrice(
                 total
         );
@@ -205,22 +208,24 @@ public class OrderServiceImpl implements OrderService {
                 cartItems
         );
 
-        // RETURN RESPONSE
         return mapToResponse(
                 savedOrder
         );
     }
 
-    // ===========================
+    // =====================================
     // USER - GET OWN ORDERS
-    // ===========================
+    // =====================================
     @Override
+    @Transactional
     public List<OrderResponse> getOrdersByUser(
             Long userId
     ) {
 
         List<Order> orders =
-                orderRepository.findByUserId(
+
+                orderRepository
+                .findByUserIdOrderByCreatedAtDesc(
                         userId
                 );
 
@@ -237,19 +242,20 @@ public class OrderServiceImpl implements OrderService {
         return responses;
     }
 
-    // ===========================
+    // =====================================
     // USER - GET ORDER BY ID
-    // ===========================
+    // =====================================
     @Override
+    @Transactional
     public OrderResponse getOrderByIdForUser(
             Long orderId,
             Long userId
     ) {
 
         Order order =
-                orderRepository.findById(
-                        orderId
-                )
+
+                orderRepository
+                .findById(orderId)
 
                 .orElseThrow(() ->
                         new RuntimeException(
@@ -272,9 +278,9 @@ public class OrderServiceImpl implements OrderService {
         return mapToResponse(order);
     }
 
-    // ===========================
+    // =====================================
     // CREATE ORDER
-    // ===========================
+    // =====================================
     @Override
     @Transactional
     public OrderResponse createOrder(
@@ -299,19 +305,20 @@ public class OrderServiceImpl implements OrderService {
         );
     }
 
-    // ===========================
+    // =====================================
     // ADMIN - UPDATE STATUS
-    // ===========================
+    // =====================================
     @Override
     public OrderResponse updateOrderStatus(
             Long orderId,
+
             OrderStatusUpdateRequest req
     ) {
 
         Order order =
-                orderRepository.findById(
-                        orderId
-                )
+
+                orderRepository
+                .findById(orderId)
 
                 .orElseThrow(() ->
                         new RuntimeException(
@@ -333,96 +340,102 @@ public class OrderServiceImpl implements OrderService {
         );
     }
 
-    // ===========================
+    // =====================================
     // MAP TO RESPONSE
-    // ===========================
+    // =====================================
     private OrderResponse mapToResponse(
-        Order order
-) {
-
-    List<OrderResponse.OrderItemResponse>
-            items = new ArrayList<>();
-
-    // SAFE NULL CHECK
-    if (
-        order.getOrderItems()
-        != null
+            Order order
     ) {
 
-        for (
-            OrderItem oi :
+        List<OrderResponse
+                .OrderItemResponse>
+
+                items =
+                new ArrayList<>();
+
+        // SAFE NULL CHECK
+        if (
             order.getOrderItems()
+            != null
         ) {
 
-            OrderResponse
-            .OrderItemResponse item =
+            for (
+                OrderItem oi :
+                order.getOrderItems()
+            ) {
 
-                    new OrderResponse
-                    .OrderItemResponse();
+                OrderResponse
+                .OrderItemResponse item =
 
-            item.setProductId(
-                    oi.getProduct()
-                    .getId()
-            );
+                        new OrderResponse
+                        .OrderItemResponse();
 
-            item.setProductName(
-                    oi.getProduct()
-                    .getProductName()
-            );
+                item.setProductId(
 
-            item.setQuantity(
-                    oi.getQuantity()
-            );
+                        oi.getProduct()
+                        .getId()
+                );
 
-            item.setPrice(
-                    oi.getPrice()
-            );
+                item.setProductName(
 
-            items.add(item);
+                        oi.getProduct()
+                        .getProductName()
+                );
+
+                item.setQuantity(
+                        oi.getQuantity()
+                );
+
+                item.setPrice(
+                        oi.getPrice()
+                );
+
+                items.add(item);
+            }
         }
+
+        // BUILD RESPONSE
+        OrderResponse response =
+                new OrderResponse();
+
+        response.setId(
+                order.getId()
+        );
+
+        response.setUserId(
+
+                order.getUser()
+                .getId()
+        );
+
+        response.setTotalPrice(
+                order.getTotalPrice()
+        );
+
+        response.setStatus(
+                order.getStatus()
+        );
+
+        response.setCreatedAt(
+                order.getCreatedAt()
+        );
+
+        response.setUpdatedAt(
+                order.getUpdatedAt()
+        );
+
+        response.setAddress(
+                order.getAddress()
+        );
+
+        response.setPaymentMethod(
+                order.getPaymentMethod()
+        );
+
+        response.setOrderItems(
+                items
+        );
+
+        return response;
     }
-
-    // BUILD RESPONSE
-    OrderResponse response =
-            new OrderResponse();
-
-    response.setId(
-            order.getId()
-    );
-
-    response.setUserId(
-            order.getUser()
-            .getId()
-    );
-
-    response.setTotalPrice(
-            order.getTotalPrice()
-    );
-
-    response.setStatus(
-            order.getStatus()
-    );
-
-    response.setCreatedAt(
-            order.getCreatedAt()
-    );
-
-    response.setUpdatedAt(
-            order.getUpdatedAt()
-    );
-
-    response.setAddress(
-            order.getAddress()
-    );
-
-    response.setPaymentMethod(
-            order.getPaymentMethod()
-    );
-
-    response.setOrderItems(
-            items
-    );
-
-    return response;
-}
 }

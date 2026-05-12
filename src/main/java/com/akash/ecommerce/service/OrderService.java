@@ -9,20 +9,56 @@ import com.akash.ecommerce.dto.OrderStatusUpdateRequest;
 
 public interface OrderService {
 
-    //  ADMIN ONLY
+    // ==============================
+    // ADMIN - GET ALL ORDERS
+    // ==============================
     List<OrderResponse> getAllOrders();
 
-    //  USER - get only their orders
-    List<OrderResponse> getOrdersByUser(Long userId);
+    // ==============================
+    // USER - GET OWN ORDERS
+    // ==============================
+    List<OrderResponse> getOrdersByUser(
+            Long userId
+    );
 
-    // USER - get specific order (with ownership check)
-    OrderResponse getOrderByIdForUser(Long orderId, Long userId);
+    // ==============================
+    // USER - GET ORDER BY ID
+    // ==============================
+    OrderResponse getOrderByIdForUser(
 
-    // USER - create order (secure)
-    OrderResponse createOrder(OrderRequest orderRequest, Long userId);
+            Long orderId,
 
-    // ADMIN ONLY - update status
-    OrderResponse updateOrderStatus(Long orderId, OrderStatusUpdateRequest statusUpdateRequest);
-    // USER - checkout (convert cart to order)
-    OrderResponse checkout(Long userId, CheckoutRequest request);
+            Long userId
+    );
+
+    // ==============================
+    // USER - CREATE ORDER
+    // ==============================
+    OrderResponse createOrder(
+
+            OrderRequest orderRequest,
+
+            Long userId
+    );
+
+    // ==============================
+    // USER - CHECKOUT
+    // ==============================
+    OrderResponse checkout(
+
+            Long userId,
+
+            CheckoutRequest request
+    );
+
+    // ==============================
+    // ADMIN - UPDATE STATUS
+    // ==============================
+    OrderResponse updateOrderStatus(
+
+            Long orderId,
+
+            OrderStatusUpdateRequest
+                    statusUpdateRequest
+    );
 }

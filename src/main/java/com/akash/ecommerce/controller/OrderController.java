@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,6 +25,7 @@ import com.akash.ecommerce.service.OrderService;
 
 @RestController
 @RequestMapping("/api/orders")
+@CrossOrigin(origins = "http://localhost:3000")
 public class OrderController {
 
     @Autowired
@@ -32,54 +34,68 @@ public class OrderController {
     @Autowired
     private UserRepository userRepository;
 
-    // ADMIN ONLY - Get all orders
+    // ==============================
+    // ADMIN - GET ALL ORDERS
+    // ==============================
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping
+    @GetMapping("/all")
     public List<OrderResponse> getAllOrders() {
+
         return orderService.getAllOrders();
     }
 
-    // USER - Get own orders
-    @GetMapping("/my")
+    // ==============================
+    // USER - GET MY ORDERS
+    // ==============================
+    @GetMapping
     public List<OrderResponse> getMyOrders() {
+
         User user = getLoggedInUser();
-        return orderService.getOrdersByUser(user.getId());
+
+        return orderService.getOrdersByUser(
+                user.getId()
+        );
     }
 
-    // USER - Get own order by id
+    // ==============================
+    // USER - GET ORDER BY ID
+    // ==============================
     @GetMapping("/{id}")
-    public OrderResponse getOrderById(@PathVariable Long id) {
+    public OrderResponse getOrderById(
+            @PathVariable Long id
+    ) {
+
         User user = getLoggedInUser();
-        return orderService.getOrderByIdForUser(id, user.getId());
+
+        return orderService.getOrderByIdForUser(
+                id,
+                user.getId()
+        );
     }
 
-    // USER - Place order (NO userId from request)
+    // ==============================
+    // USER - CREATE ORDER
+    // ==============================
     @PostMapping
-    public OrderResponse createOrder(@RequestBody OrderRequest orderRequest) {
+    public OrderResponse createOrder(
+            @RequestBody OrderRequest orderRequest
+    ) {
+
         User user = getLoggedInUser();
-        return orderService.createOrder(orderRequest, user.getId());
+
+        return orderService.createOrder(
+                orderRequest,
+                user.getId()
+        );
     }
 
-    // ADMIN ONLY - Update order status
-    @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/{id}")
-    public OrderResponse updateOrderStatus(@PathVariable Long id,
-            @RequestBody OrderStatusUpdateRequest statusUpdateRequest) {
-
-        return orderService.updateOrderStatus(id, statusUpdateRequest);
-    }
-
-    // COMMON METHOD (IMPORTANT)
-    private User getLoggedInUser() {
-
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String email = auth.getName();
-
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-    }
+    // ==============================
+    // USER - CHECKOUT
+    // ==============================
     @PostMapping("/checkout")
-    public OrderResponse checkout(@RequestBody CheckoutRequest request) {
+    public OrderResponse checkout(
+            @RequestBody CheckoutRequest request
+    ) {
 
         User user = getLoggedInUser();
 
@@ -87,5 +103,49 @@ public class OrderController {
                 user.getId(),
                 request
         );
+    }
+
+    // ==============================
+    // ADMIN - UPDATE STATUS
+    // ==============================
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}")
+    public OrderResponse updateOrderStatus(
+
+            @PathVariable Long id,
+
+            @RequestBody
+            OrderStatusUpdateRequest
+                    statusUpdateRequest
+    ) {
+
+        return orderService.updateOrderStatus(
+                id,
+                statusUpdateRequest
+        );
+    }
+
+    // ==============================
+    // COMMON METHOD
+    // ==============================
+    private User getLoggedInUser() {
+
+        Authentication auth =
+
+                SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+
+        String email =
+                auth.getName();
+
+        return userRepository
+                .findByEmail(email)
+
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "User not found"
+                        )
+                );
     }
 }
