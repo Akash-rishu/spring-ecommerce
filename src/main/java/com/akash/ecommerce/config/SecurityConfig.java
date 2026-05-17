@@ -6,6 +6,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -16,14 +17,20 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import com.akash.ecommerce.service.CustomUserDetailsService;
 
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
 
     private final JwtFilter jwtFilter;
 
+    // =========================
+    // CONSTRUCTOR
+    // =========================
     public SecurityConfig(
+
             CustomUserDetailsService userDetailsService,
+
             JwtFilter jwtFilter
     ) {
 
@@ -34,27 +41,36 @@ public class SecurityConfig {
                 jwtFilter;
     }
 
+    // =========================
     // PASSWORD ENCODER
+    // =========================
     @Bean
     public PasswordEncoder passwordEncoder() {
 
         return new BCryptPasswordEncoder();
     }
 
-    // AUTHENTICATION MANAGER
+    // =========================
+    // AUTH MANAGER
+    // =========================
     @Bean
     public AuthenticationManager authenticationManager(
+
             AuthenticationConfiguration config
+
     ) throws Exception {
 
         return config.getAuthenticationManager();
     }
 
+    // =========================
     // AUTH PROVIDER
+    // =========================
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
 
         DaoAuthenticationProvider authProvider =
+
                 new DaoAuthenticationProvider();
 
         authProvider.setUserDetailsService(
@@ -68,137 +84,225 @@ public class SecurityConfig {
         return authProvider;
     }
 
+    // =========================
     // SECURITY FILTER CHAIN
+    // =========================
     @Bean
     public SecurityFilterChain securityFilterChain(
+
             HttpSecurity http
+
     ) throws Exception {
 
         http
 
+            // =========================
+            // CORS
+            // =========================
             .cors(cors -> {})
 
+            // =========================
+            // DISABLE CSRF
+            // =========================
             .csrf(csrf -> csrf.disable())
 
+            // =========================
+            // STATELESS SESSION
+            // =========================
             .sessionManagement(session ->
+
                     session.sessionCreationPolicy(
+
                             SessionCreationPolicy.STATELESS
                     )
             )
 
+            // =========================
+            // ROUTE AUTHORIZATION
+            // =========================
             .authorizeHttpRequests(auth -> auth
 
+                    // =========================
                     // PUBLIC AUTH
+                    // =========================
                     .requestMatchers(
+
                             "/api/auth/**"
-                    )
-                    .permitAll()
 
-                    // IMAGE ACCESS
+                    ).permitAll()
+
+                    // =========================
+                    // PUBLIC IMAGES
+                    // =========================
                     .requestMatchers(
+
                             "/images/**"
-                    )
-                    .permitAll()
 
-                    // OPTIONS
+                    ).permitAll()
+
+                    // =========================
+                    // OPTIONS REQUESTS
+                    // =========================
                     .requestMatchers(
+
                             HttpMethod.OPTIONS,
+
                             "/**"
-                    )
-                    .permitAll()
 
+                    ).permitAll()
+
+                    // =========================
                     // PUBLIC PRODUCTS
+                    // =========================
                     .requestMatchers(
+
                             HttpMethod.GET,
+
                             "/api/products/**"
-                    )
-                    .permitAll()
 
+                    ).permitAll()
+
+                    // =========================
+                    // PUBLIC CATEGORIES
+                    // =========================
                     .requestMatchers(
+
                             HttpMethod.GET,
+
                             "/api/categories/**"
+
+                    ).permitAll()
+
+                    // =========================
+                    // ADDRESS
+                    // =========================
+                    .requestMatchers(
+
+                            "/api/address/**"
+
+                    ).hasAnyRole(
+
+                            "USER",
+
+                            "ADMIN"
                     )
-                    .permitAll()
 
-                    .requestMatchers("/api/address/**")
-                    .hasRole("USER")
-
+                    // =========================
                     // CHECKOUT
+                    // =========================
                     .requestMatchers(
+
                             "/api/orders/checkout"
-                    )
-                    .permitAll()
 
+                    ).hasRole("USER")
+
+                    // =========================
                     // CART
+                    // =========================
                     .requestMatchers(
+
                             "/api/cart/**"
-                    )
-                    .hasRole("USER")
 
+                    ).hasRole("USER")
+
+                    // =========================
                     // PRODUCT ADMIN
+                    // =========================
                     .requestMatchers(
+
                             HttpMethod.POST,
+
                             "/api/products/**"
-                    )
-                    .hasRole("ADMIN")
+
+                    ).hasRole("ADMIN")
 
                     .requestMatchers(
+
                             HttpMethod.PUT,
+
                             "/api/products/**"
-                    )
-                    .hasRole("ADMIN")
+
+                    ).hasRole("ADMIN")
 
                     .requestMatchers(
-                            HttpMethod.DELETE,
-                            "/api/products/**"
-                    )
-                    .hasRole("ADMIN")
 
+                            HttpMethod.DELETE,
+
+                            "/api/products/**"
+
+                    ).hasRole("ADMIN")
+
+                    // =========================
                     // CATEGORY ADMIN
+                    // =========================
                     .requestMatchers(
+
                             HttpMethod.POST,
+
                             "/api/categories/**"
-                    )
-                    .hasRole("ADMIN")
+
+                    ).hasRole("ADMIN")
 
                     .requestMatchers(
+
                             HttpMethod.DELETE,
+
                             "/api/categories/**"
-                    )
-                    .hasRole("ADMIN")
 
+                    ).hasRole("ADMIN")
+
+                    // =========================
                     // ORDERS
+                    // =========================
                     .requestMatchers(
+
                             HttpMethod.POST,
+
                             "/api/orders/**"
-                    )
-                    .hasAnyRole(
+
+                    ).hasAnyRole(
+
                             "USER",
+
                             "ADMIN"
                     )
 
                     .requestMatchers(
+
                             HttpMethod.GET,
+
                             "/api/orders/**"
-                    )
-                    .hasAnyRole(
+
+                    ).hasAnyRole(
+
                             "USER",
+
                             "ADMIN"
                     )
 
                     .requestMatchers(
-                            HttpMethod.PUT,
-                            "/api/orders/**"
-                    )
-                    .hasRole("ADMIN")
 
+                            HttpMethod.PUT,
+
+                            "/api/orders/**"
+
+                    ).hasRole("ADMIN")
+
+                    // =========================
                     // EVERYTHING ELSE
+                    // =========================
                     .anyRequest()
+
                     .authenticated()
             )
 
+            // =========================
+            // JWT FILTER
+            // =========================
             .addFilterBefore(
+
                     jwtFilter,
+
                     UsernamePasswordAuthenticationFilter.class
             );
 

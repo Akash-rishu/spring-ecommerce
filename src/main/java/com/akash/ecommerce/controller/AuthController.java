@@ -20,6 +20,7 @@ import com.akash.ecommerce.repository.UserRepository;
 import com.akash.ecommerce.utils.JwtUtil;
 
 @CrossOrigin(origins = "http://localhost:3000")
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -28,7 +29,7 @@ public class AuthController {
     private UserRepository userRepository;
 
     @Autowired
-    private PasswordEncoder passwordEncoder; // BCrypt injected
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -36,47 +37,121 @@ public class AuthController {
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    // =========================
+    // REGISTER
+    // =========================
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody User user) {
+    public ResponseEntity<?> registerUser(
+            @RequestBody User user
+    ) {
 
-        if (userRepository.existsByEmail(user.getEmail())) {
-            return ResponseEntity.badRequest().body("Email already exists");
+        // EMAIL EXISTS
+        if (
+                userRepository.existsByEmail(
+                        user.getEmail()
+                )
+        ) {
+
+            return ResponseEntity
+                    .badRequest()
+                    .body(
+                            "Email already exists"
+                    );
         }
 
-        // temporary fix
+        // DEFAULT ROLE
         user.setRole(Role.USER);
-        // BCrypt hashing
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        User savedUser = userRepository.save(user);
+        // PASSWORD ENCODE
+        user.setPassword(
 
-        UserDTO userDTO = new UserDTO(
-                savedUser.getId(),
-                savedUser.getName(),
-                savedUser.getEmail(),
-                savedUser.getRole().name());
-        return ResponseEntity.ok(userDTO);
+                passwordEncoder.encode(
+                        user.getPassword()
+                )
+        );
+
+        // SAVE USER
+        User savedUser =
+                userRepository.save(user);
+
+        // DTO RESPONSE
+        UserDTO userDTO =
+                new UserDTO(
+
+                        savedUser.getId(),
+
+                        savedUser.getName(),
+
+                        savedUser.getEmail(),
+
+                        savedUser.getRole().name()
+                );
+
+        return ResponseEntity.ok(
+                userDTO
+        );
     }
 
-    // Login API (Authentication + JWT)
+    // =========================
+    // LOGIN
+    // =========================
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> loginUser(@RequestBody AuthRequest request) {
+    public ResponseEntity<AuthResponse> loginUser(
+            @RequestBody AuthRequest request
+    ) {
 
-    authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(
-                    request.getEmail(),
-                    request.getPassword()
-            )
-    );
+        // AUTHENTICATE
+        authenticationManager.authenticate(
 
-    User user = userRepository.findByEmail(request.getEmail())
-            .orElseThrow(() -> new RuntimeException("User not found"));
+                new UsernamePasswordAuthenticationToken(
 
-    String token = jwtUtil.generateToken(
-            user.getEmail(),
-            user.getRole().name()   // ADMIN / USER
-    );
+                        request.getEmail(),
 
-    return ResponseEntity.ok(new AuthResponse(token));
-}
+                        request.getPassword()
+                )
+        );
+
+        // FIND USER
+        User user =
+                userRepository.findByEmail(
+                        request.getEmail()
+                )
+
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "User not found"
+                        )
+                );
+
+        // GENERATE JWT
+        String token =
+                jwtUtil.generateToken(
+
+                        user.getEmail(),
+
+                        user.getRole().name()
+                );
+
+        // RESPONSE
+        AuthResponse response =
+                new AuthResponse();
+
+        response.setToken(token);
+
+        response.setRole(
+                user.getRole().name()
+        );
+
+        response.setEmail(
+                user.getEmail()
+        );
+
+        response.setName(
+                user.getName()
+        );
+
+        return ResponseEntity.ok(
+                response
+        );
+    }
 }

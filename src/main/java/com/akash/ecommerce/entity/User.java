@@ -24,102 +24,178 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // ==============================
+    // NAME
+    // ==============================
     @Column(nullable = false)
     private String name;
 
+    // ==============================
+    // EMAIL
+    // ==============================
     @Column(nullable = false, unique = true)
     private String email;
 
-    @JsonIgnore 
+    // ==============================
+    // PASSWORD
+    // ==============================
+    @JsonIgnore
     @Column(nullable = false)
     private String password;
 
-    //Temp Change
+    // ==============================
+    // ROLE
+    // ==============================
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    // ==============================
+    // PHONE NUMBER
+    // ==============================
     @Column(name = "phone_number")
     private String phoneNumber;
 
-    // @Enumerated(EnumType.STRING)
-    // @Column(nullable = false)
-    // private Role role = Role.USER; // default role
-
+    // ==============================
+    // CREATED TIME
+    // ==============================
     @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
+    @Column(
+            name = "created_at",
+            updatable = false
+    )
     private LocalDateTime createdAt;
 
+    // ==============================
+    // UPDATED TIME
+    // ==============================
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // Default Constructor
-    public User() {}
-
-    // Constructor
-    public User(String name, String email, String password, String phoneNumber, Role role) {
-        this.name = name;
-        this.email = email;
-        this.password = password;
-        this.phoneNumber = phoneNumber;
-        this.role = (role != null) ? role : Role.USER;
+    // ==============================
+    // DEFAULT CONSTRUCTOR
+    // ==============================
+    public User() {
     }
 
-    // Getters & Setters
+    // ==============================
+    // CONSTRUCTOR
+    // ==============================
+    public User(
+
+            String name,
+
+            String email,
+
+            String password,
+
+            String phoneNumber,
+
+            Role role
+    ) {
+
+        this.name = name;
+
+        this.email = email;
+
+        this.password = password;
+
+        this.phoneNumber = phoneNumber;
+
+        this.role =
+                (role != null)
+                ? role
+                : Role.USER;
+    }
+
+    // ==============================
+    // GETTERS & SETTERS
+    // ==============================
 
     public Long getId() {
         return id;
     }
 
+    public void setId(
+            Long id
+    ) {
+        this.id = id;
+    }
+
+    // NAME
     public String getName() {
         return name;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public void setName(String name) {
+    public void setName(
+            String name
+    ) {
         this.name = name;
     }
 
+    // EMAIL
     public String getEmail() {
         return email;
     }
 
-    public void setEmail(String email) {
+    public void setEmail(
+            String email
+    ) {
         this.email = email;
     }
 
-    public String getPassword() { 
+    // PASSWORD
+    public String getPassword() {
         return password;
     }
 
-    public void setPassword(String password) {
+    public void setPassword(
+            String password
+    ) {
         this.password = password;
     }
 
+    // PHONE NUMBER
     public String getPhoneNumber() {
         return phoneNumber;
     }
 
-    public void setPhoneNumber(String phoneNumber) {
+    public void setPhoneNumber(
+            String phoneNumber
+    ) {
         this.phoneNumber = phoneNumber;
     }
 
+    // ROLE
     public Role getRole() {
         return role;
     }
 
-    public void setRole(Role role) {
+    public void setRole(
+            Role role
+    ) {
         this.role = role;
     }
 
+    // CREATED AT
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
+    public void setCreatedAt(
+            LocalDateTime createdAt
+    ) {
+        this.createdAt = createdAt;
+    }
+
+    // UPDATED AT
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public void setUpdatedAt(
+            LocalDateTime updatedAt
+    ) {
+        this.updatedAt = updatedAt;
     }
 }

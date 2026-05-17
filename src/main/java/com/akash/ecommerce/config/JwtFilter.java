@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -27,52 +28,150 @@ public class JwtFilter extends OncePerRequestFilter {
     private CustomUserDetailsService userDetailsService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain chain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(
 
-        final String authHeader = request.getHeader("Authorization");
+            HttpServletRequest request,
+
+            HttpServletResponse response,
+
+            FilterChain chain
+
+    ) throws ServletException, IOException {
+
+        // =========================
+        // SKIP AUTH APIs
+        // =========================
+        String path =
+                request.getServletPath();
+
+        if (
+
+                path.startsWith("/api/auth")
+
+                ||
+
+                path.startsWith("/images")
+
+        ) {
+
+            chain.doFilter(
+                    request,
+                    response
+            );
+
+            return;
+        }
+
+        // =========================
+        // GET AUTH HEADER
+        // =========================
+        final String authHeader =
+                request.getHeader(
+                        "Authorization"
+                );
 
         String token = null;
+
         String email = null;
 
-        // Extract token
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring(7);
+        // =========================
+        // EXTRACT TOKEN
+        // =========================
+        if (
+
+                authHeader != null
+
+                &&
+
+                authHeader.startsWith(
+                        "Bearer "
+                )
+        ) {
+
+            token =
+                    authHeader.substring(7);
 
             try {
-                email = jwtUtil.extractEmail(token);
+
+                email =
+                        jwtUtil.extractEmail(
+                                token
+                        );
+
             } catch (Exception e) {
-                System.out.println("❌ Invalid or expired JWT token");
+
+                System.out.println(
+                        "❌ Invalid or expired JWT token"
+                );
             }
         }
 
-        // Authenticate user
-        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        // =========================
+        // AUTHENTICATE USER
+        // =========================
+        if (
 
-            var userDetails = userDetailsService.loadUserByUsername(email);
+                email != null
 
-            if (jwtUtil.validateToken(token, email)) {
+                &&
 
-                System.out.println(" Valid JWT for: " + email);
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication() == null
+
+        ) {
+
+            UserDetails userDetails =
+
+                    userDetailsService
+                            .loadUserByUsername(
+                                    email
+                            );
+
+            // VALID TOKEN
+            if (
+
+                    jwtUtil.validateToken(
+                            token,
+                            email
+                    )
+
+            ) {
+
+                System.out.println(
+                        "✅ Valid JWT for: "
+                        + email
+                );
 
                 UsernamePasswordAuthenticationToken authToken =
+
                         new UsernamePasswordAuthenticationToken(
-                                userDetails, 
+
+                                userDetails,
+
                                 null,
+
                                 userDetails.getAuthorities()
                         );
 
                 authToken.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request)
+
+                        new WebAuthenticationDetailsSource()
+                                .buildDetails(request)
                 );
 
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                SecurityContextHolder
+                        .getContext()
+                        .setAuthentication(authToken);
             }
         }
 
-        // Continue request
-        chain.doFilter(request, response);
+        // =========================
+        // CONTINUE REQUEST
+        // =========================
+        chain.doFilter(
+                request,
+                response
+        );
     }
 }
