@@ -1,7 +1,5 @@
 package com.akash.ecommerce.dto;
 
-import com.akash.ecommerce.entity.OrderStatus;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,6 +7,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderStatusUpdateRequest {
-     private OrderStatus status;
+public class CheckoutRequest {
+
+    // DELIVERY ADDRESS
+    private String address;
+
+    // PAYMENT METHOD
+    // COD / UPI
+    private String paymentMethod;
 }

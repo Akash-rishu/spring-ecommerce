@@ -14,6 +14,7 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "categories")
 public class Category {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -24,6 +25,7 @@ public class Category {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    // getters & setters
     public Long getId() {
         return id;
     }

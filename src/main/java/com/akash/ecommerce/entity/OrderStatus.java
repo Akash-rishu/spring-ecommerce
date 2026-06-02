@@ -1,8 +1,9 @@
 package com.akash.ecommerce.entity;
 
 public enum OrderStatus {
+
     PENDING,
-    PROCESSING,
+    PLACED,
     SHIPPED,
     DELIVERED,
     CANCELLED

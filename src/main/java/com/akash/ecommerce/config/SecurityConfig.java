@@ -2,9 +2,11 @@ package com.akash.ecommerce.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -15,60 +17,294 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import com.akash.ecommerce.service.CustomUserDetailsService;
 
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
+
     private final JwtFilter jwtFilter;
 
-    public SecurityConfig(CustomUserDetailsService userDetailsService,
-                          JwtFilter jwtFilter) {
-        this.userDetailsService = userDetailsService;
-        this.jwtFilter = jwtFilter;
+    // =========================
+    // CONSTRUCTOR
+    // =========================
+    public SecurityConfig(
+
+            CustomUserDetailsService userDetailsService,
+
+            JwtFilter jwtFilter
+    ) {
+
+        this.userDetailsService =
+                userDetailsService;
+
+        this.jwtFilter =
+                jwtFilter;
     }
 
-    // Password Encoder
+    // =========================
+    // PASSWORD ENCODER
+    // =========================
     @Bean
     public PasswordEncoder passwordEncoder() {
+
         return new BCryptPasswordEncoder();
     }
 
-    // Authentication Manager
+    // =========================
+    // AUTH MANAGER
+    // =========================
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+    public AuthenticationManager authenticationManager(
+
+            AuthenticationConfiguration config
+
+    ) throws Exception {
+
         return config.getAuthenticationManager();
     }
 
-    // IMPORTANT: Authentication Provider (Fixes many 403 issues)
+    // =========================
+    // AUTH PROVIDER
+    // =========================
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoder());
+
+        DaoAuthenticationProvider authProvider =
+
+                new DaoAuthenticationProvider();
+
+        authProvider.setUserDetailsService(
+                userDetailsService
+        );
+
+        authProvider.setPasswordEncoder(
+                passwordEncoder()
+        );
+
         return authProvider;
     }
 
-    // Security Filter Chain
+    // =========================
+    // SECURITY FILTER CHAIN
+    // =========================
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+
+            HttpSecurity http
+
+    ) throws Exception {
 
         http
+
+            // =========================
+            // CORS
+            // =========================
+            .cors(cors -> {})
+
+            // =========================
+            // DISABLE CSRF
+            // =========================
             .csrf(csrf -> csrf.disable())
 
-            // JWT = Stateless
-            .sessionManagement(session -> session
-                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            // =========================
+            // STATELESS SESSION
+            // =========================
+            .sessionManagement(session ->
+
+                    session.sessionCreationPolicy(
+
+                            SessionCreationPolicy.STATELESS
+                    )
             )
 
+            // =========================
+            // ROUTE AUTHORIZATION
+            // =========================
             .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/api/auth/**").permitAll()
-                    .anyRequest().authenticated()
+
+                    // =========================
+                    // PUBLIC AUTH
+                    // =========================
+                    .requestMatchers(
+
+                            "/api/auth/**"
+
+                    ).permitAll()
+
+                    // =========================
+                    // PUBLIC IMAGES
+                    // =========================
+                    .requestMatchers(
+
+                            "/images/**"
+
+                    ).permitAll()
+
+                    // =========================
+                    // OPTIONS REQUESTS
+                    // =========================
+                    .requestMatchers(
+
+                            HttpMethod.OPTIONS,
+
+                            "/**"
+
+                    ).permitAll()
+
+                    // =========================
+                    // PUBLIC PRODUCTS
+                    // =========================
+                    .requestMatchers(
+
+                            HttpMethod.GET,
+
+                            "/api/products/**"
+
+                    ).permitAll()
+
+                    // =========================
+                    // PUBLIC CATEGORIES
+                    // =========================
+                    .requestMatchers(
+
+                            HttpMethod.GET,
+
+                            "/api/categories/**"
+
+                    ).permitAll()
+
+                    // =========================
+                    // ADDRESS
+                    // =========================
+                    .requestMatchers(
+
+                            "/api/address/**"
+
+                    ).hasAnyRole(
+
+                            "USER",
+
+                            "ADMIN"
+                    )
+
+                    // =========================
+                    // CHECKOUT
+                    // =========================
+                    .requestMatchers(
+
+                            "/api/orders/checkout"
+
+                    ).hasRole("USER")
+
+                    // =========================
+                    // CART
+                    // =========================
+                    .requestMatchers(
+
+                            "/api/cart/**"
+
+                    ).hasRole("USER")
+
+                    // =========================
+                    // PRODUCT ADMIN
+                    // =========================
+                    .requestMatchers(
+
+                            HttpMethod.POST,
+
+                            "/api/products/**"
+
+                    ).hasRole("ADMIN")
+
+                    .requestMatchers(
+
+                            HttpMethod.PUT,
+
+                            "/api/products/**"
+
+                    ).hasRole("ADMIN")
+
+                    .requestMatchers(
+
+                            HttpMethod.DELETE,
+
+                            "/api/products/**"
+
+                    ).hasRole("ADMIN")
+
+                    // =========================
+                    // CATEGORY ADMIN
+                    // =========================
+                    .requestMatchers(
+
+                            HttpMethod.POST,
+
+                            "/api/categories/**"
+
+                    ).hasRole("ADMIN")
+
+                    .requestMatchers(
+
+                            HttpMethod.DELETE,
+
+                            "/api/categories/**"
+
+                    ).hasRole("ADMIN")
+
+                    // =========================
+                    // ORDERS
+                    // =========================
+                    .requestMatchers(
+
+                            HttpMethod.POST,
+
+                            "/api/orders/**"
+
+                    ).hasAnyRole(
+
+                            "USER",
+
+                            "ADMIN"
+                    )
+
+                    .requestMatchers(
+
+                            HttpMethod.GET,
+
+                            "/api/orders/**"
+
+                    ).hasAnyRole(
+
+                            "USER",
+
+                            "ADMIN"
+                    )
+
+                    .requestMatchers(
+
+                            HttpMethod.PUT,
+
+                            "/api/orders/**"
+
+                    ).hasRole("ADMIN")
+
+                    // =========================
+                    // EVERYTHING ELSE
+                    // =========================
+                    .anyRequest()
+
+                    .authenticated()
             )
 
-            // REGISTER AUTH PROVIDER
-            .authenticationProvider(authenticationProvider())
-
+            // =========================
             // JWT FILTER
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+            // =========================
+            .addFilterBefore(
+
+                    jwtFilter,
+
+                    UsernamePasswordAuthenticationFilter.class
+            );
 
         return http.build();
     }

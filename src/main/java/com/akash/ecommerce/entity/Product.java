@@ -18,33 +18,51 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "products")
 public class Product {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // PRODUCT NAME
     @Column(nullable = false)
     private String productName;
 
+    // DESCRIPTION
     @Column(columnDefinition = "TEXT")
-    private String productDescription;
+    private String description;
 
+    // SPECIFICATIONS
+    @Column(length = 3000)
+    private String specifications;
+
+    // PRICE
     @Column(nullable = false)
     private BigDecimal productPrice;
 
+    // STOCK
     @Column(nullable = false)
     private Integer stock;
 
+    // IMAGE
+    private String image;
+
+    // CATEGORY
     @ManyToOne
     @JoinColumn(name = "category_categoryId")
     private Category category;
 
+    // LATEST PRODUCT
     private boolean isLatest = false;
 
+    // CREATED AT
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    // UPDATED AT
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    // ================= GETTERS & SETTERS =================
 
     public Long getId() {
         return id;
@@ -58,23 +76,39 @@ public class Product {
         return productName;
     }
 
-    public void setProductName(String productName) {
+    public void setProductName(
+            String productName
+    ) {
         this.productName = productName;
     }
 
-    public String getProductDescription() {
-        return productDescription;
+    public String getDescription() {
+        return description;
     }
 
-    public void setProductDescription(String productDescription) {
-        this.productDescription = productDescription;
+    public void setDescription(
+            String description
+    ) {
+        this.description = description;
+    }
+
+    public String getSpecifications() {
+        return specifications;
+    }
+
+    public void setSpecifications(
+            String specifications
+    ) {
+        this.specifications = specifications;
     }
 
     public BigDecimal getProductPrice() {
         return productPrice;
     }
 
-    public void setProductPrice(BigDecimal productPrice) {
+    public void setProductPrice(
+            BigDecimal productPrice
+    ) {
         this.productPrice = productPrice;
     }
 
@@ -82,15 +116,29 @@ public class Product {
         return stock;
     }
 
-    public void setStock(Integer stock) {
+    public void setStock(
+            Integer stock
+    ) {
         this.stock = stock;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(
+            String image
+    ) {
+        this.image = image;
     }
 
     public Category getCategory() {
         return category;
     }
 
-    public void setCategory(Category category) {
+    public void setCategory(
+            Category category
+    ) {
         this.category = category;
     }
 
@@ -98,7 +146,9 @@ public class Product {
         return isLatest;
     }
 
-    public void setLatest(boolean latest) {
+    public void setLatest(
+            boolean latest
+    ) {
         isLatest = latest;
     }
 
@@ -106,7 +156,9 @@ public class Product {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(
+            LocalDateTime createdAt
+    ) {
         this.createdAt = createdAt;
     }
 
@@ -114,8 +166,9 @@ public class Product {
         return updatedAt;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
+    public void setUpdatedAt(
+            LocalDateTime updatedAt
+    ) {
         this.updatedAt = updatedAt;
     }
-
 }

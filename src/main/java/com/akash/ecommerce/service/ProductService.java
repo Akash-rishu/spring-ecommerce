@@ -2,25 +2,26 @@ package com.akash.ecommerce.service;
 
 import java.util.List;
 
-import com.akash.ecommerce.entity.Category;
 import com.akash.ecommerce.entity.Product;
 
 public interface ProductService {
 
-    public Product addProduct(Product product);
+    Product addProduct(Product product);
 
-    public List<Product> findAllProduct();
+    List<Product> findAllProducts();
 
-    public Product findByProductId(long productId);
+    Product findProductById(long productId);
 
-    public Product updateByProductId(long productId, Product updateProduct);
+    Product updateProduct(long productId, Product updateProduct);
 
-    public Product deleteByProductId(long productId);
+    Product deleteProduct(long productId);
 
-    public List<Product> findByCategoryId(Category categoryId);
+    List<Product> findByCategoryId(Long categoryId);
 
-    public List<Product> findByIsLatestTrue();
+    List<Product> findByIsLatestTrue();
 
-    public void toggleLatestStatus(Long productId);
+    void toggleLatestStatus(Long productId);
 
+    // ADD THIS (IMPORTANT)
+    List<Product> searchProducts(String name, Long categoryId);
 }
